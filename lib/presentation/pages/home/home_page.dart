@@ -6,6 +6,7 @@ import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../auth/login_page.dart';
 import '../market/market_page.dart';
+import '../portfolio/portfolio_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -82,7 +83,7 @@ class _HomePageState extends State<HomePage> {
           index: _selectedIndex,
           children: const [
             MarketPage(),
-            _PortfolioTab(),
+            PortfolioPage(),
             _ProfileTab(),
           ],
         ),
@@ -111,32 +112,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _PortfolioTab extends StatelessWidget {
-  const _PortfolioTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.account_balance_wallet, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Portfolio Tab',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Coming in Phase 6',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
       ),
     );
   }
