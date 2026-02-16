@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/constants/app_constants.dart';
+import 'core/di/injection_container.dart';
 import 'core/theme/app_theme.dart';
+import 'presentation/bloc/auth/auth_bloc.dart';
+import 'presentation/bloc/portfolio/portfolio_bloc.dart';
+import 'presentation/bloc/stock/stock_bloc.dart';
+import 'presentation/pages/splash_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await InjectionContainer.init();
   runApp(const StockMarketApp());
 }
 
@@ -11,48 +19,25 @@ class StockMarketApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      home: const SplashScreen(),
-    );
-  }
-}
-
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.show_chart,
-              size: 100,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              AppConstants.appName,
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Phase 1: Setup Complete ',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.green,
-                  ),
-            ),
-          ],
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>(
+          create: (_) => InjectionContainer.authBloc,
         ),
+        BlocProvider<StockBloc>(
+          create: (_) => InjectionContainer.stockBloc,
+        ),
+        BlocProvider<PortfolioBloc>(
+          create: (_) => InjectionContainer.portfolioBloc,
+        ),
+      ],
+      child: MaterialApp(
+        title: AppConstants.appName,
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        home: const SplashPage(),
       ),
     );
   }
