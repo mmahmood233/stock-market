@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../domain/entities/stock.dart';
+import '../../bloc/stock/stock_bloc.dart';
+import '../../bloc/stock/stock_event.dart';
+import '../../bloc/stock/stock_state.dart';
+import '../../widgets/stock_chart.dart';
 
-class StockDetailPage extends StatelessWidget {
+class StockDetailPage extends StatefulWidget {
   final Stock stock;
 
   const StockDetailPage({
@@ -12,13 +17,37 @@ class StockDetailPage extends StatelessWidget {
   });
 
   @override
+  State<StockDetailPage> createState() => _StockDetailPageState();
+}
+
+class _StockDetailPageState extends State<StockDetailPage> {
+  @override
+  void initState() {
+    super.initState();
+    _loadHistoricalData();
+  }
+
+  void _loadHistoricalData() {
+    final endDate = DateTime.now();
+    final startDate = endDate.subtract(const Duration(days: 365));
+    
+    context.read<StockBloc>().add(
+          StockHistoryRequested(
+            symbol: widget.stock.symbol,
+            startDate: startDate,
+            endDate: endDate,
+          ),
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isPositive = stock.isPositive;
+    final isPositive = widget.stock.isPositive;
     final changeColor = isPositive ? AppColors.profitGreen : AppColors.lossRed;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(stock.symbol),
+        title: Text(widget.stock.symbol),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -30,21 +59,21 @@ class StockDetailPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    stock.name,
+                    widget.stock.name,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    stock.symbol,
+                    widget.stock.symbol,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.grey,
                         ),
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    Formatters.formatCurrency(stock.currentPrice),
+                    Formatters.formatCurrency(widget.stock.currentPrice),
                     style: Theme.of(context).textTheme.displaySmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -60,7 +89,7 @@ class StockDetailPage extends StatelessWidget {
                         size: 24,
                       ),
                       Text(
-                        '${Formatters.formatCurrency(stock.changeAmount.abs())} (${Formatters.formatPercentage(stock.changePercentage.abs())})',
+                        '${Formatters.formatCurrency(widget.stock.changeAmount.abs())} (${Formatters.formatPercentage(widget.stock.changePercentage.abs())})',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: changeColor,
                               fontWeight: FontWeight.bold,
@@ -89,31 +118,31 @@ class StockDetailPage extends StatelessWidget {
                   _buildDataRow(
                     context,
                     'Previous Close',
-                    Formatters.formatCurrency(stock.previousClose),
+                    Formatters.formatCurrency(widget.stock.previousClose),
                   ),
                   const Divider(height: 24),
                   _buildDataRow(
                     context,
                     'Day High',
-                    Formatters.formatCurrency(stock.dayHigh),
+                    Formatters.formatCurrency(widget.stock.dayHigh),
                   ),
                   const Divider(height: 24),
                   _buildDataRow(
                     context,
                     'Day Low',
-                    Formatters.formatCurrency(stock.dayLow),
+                    Formatters.formatCurrency(widget.stock.dayLow),
                   ),
                   const Divider(height: 24),
                   _buildDataRow(
                     context,
                     'Volume',
-                    Formatters.formatCompactNumber(stock.volume),
+                    Formatters.formatCompactNumber(widget.stock.volume),
                   ),
                   const Divider(height: 24),
                   _buildDataRow(
                     context,
                     'Last Updated',
-                    Formatters.formatDateTime(stock.lastUpdated),
+                    Formatters.formatDateTime(widget.stock.lastUpdated),
                   ),
                 ],
               ),
@@ -122,27 +151,63 @@ class StockDetailPage extends StatelessWidget {
           const SizedBox(height: 16),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.show_chart,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(height: 16),
                   Text(
                     'Historical Chart',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Coming in Phase 7',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey,
-                        ),
+                  const SizedBox(height: 16),
+                  BlocBuilder<StockBloc, StockState>(
+                    builder: (context, state) {
+                      if (state is StockHistoryLoaded && 
+                          state.symbol == widget.stock.symbol) {
+                        return StockChart(
+                          history: state.history,
+                          isLoading: false,
+                        );
+                      } else if (state is StockLoading) {
+                        return const StockChart(
+                          history: [],
+                          isLoading: true,
+                        );
+                      } else if (state is StockError) {
+                        return SizedBox(
+                          height: 300,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.error_outline,
+                                  size: 48,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Failed to load chart',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                                const SizedBox(height: 8),
+                                TextButton.icon(
+                                  onPressed: _loadHistoricalData,
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Retry'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      return const StockChart(
+                        history: [],
+                        isLoading: true,
+                      );
+                    },
                   ),
                 ],
               ),
