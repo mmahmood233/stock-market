@@ -3,10 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../domain/entities/stock.dart';
+import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_state.dart';
+import '../../bloc/portfolio/portfolio_bloc.dart';
+import '../../bloc/portfolio/portfolio_event.dart';
+import '../../bloc/portfolio/portfolio_state.dart';
 import '../../bloc/stock/stock_bloc.dart';
 import '../../bloc/stock/stock_event.dart';
 import '../../bloc/stock/stock_state.dart';
 import '../../widgets/stock_chart.dart';
+import '../../widgets/trade_dialog.dart';
 
 class StockDetailPage extends StatefulWidget {
   final Stock stock;
@@ -25,6 +31,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
   void initState() {
     super.initState();
     _loadHistoricalData();
+    _loadPortfolio();
   }
 
   void _loadHistoricalData() {
@@ -38,6 +45,45 @@ class _StockDetailPageState extends State<StockDetailPage> {
             endDate: endDate,
           ),
         );
+  }
+
+  void _loadPortfolio() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      context.read<PortfolioBloc>().add(
+            PortfolioLoadRequested(authState.user.id),
+          );
+    }
+  }
+
+  void _showTradeDialog(TradeType type) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return;
+
+    int? currentHoldings;
+    final portfolioState = context.read<PortfolioBloc>().state;
+    if (portfolioState is PortfolioLoaded) {
+      final holding = portfolioState.stocks.cast<dynamic>().firstWhere(
+        (s) => s.symbol == widget.stock.symbol,
+        orElse: () => null,
+      );
+      currentHoldings = holding?.quantity;
+    }
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<AuthBloc>()),
+          BlocProvider.value(value: context.read<PortfolioBloc>()),
+        ],
+        child: TradeDialog(
+          stock: widget.stock,
+          type: type,
+          currentHoldings: currentHoldings,
+        ),
+      ),
+    ).then((_) => _loadPortfolio());
   }
 
   @override
@@ -214,33 +260,94 @@ class _StockDetailPageState extends State<StockDetailPage> {
             ),
           ),
           const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.shopping_cart,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Buy/Sell',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+          BlocBuilder<PortfolioBloc, PortfolioState>(
+            builder: (context, portfolioState) {
+              int? currentHoldings;
+              if (portfolioState is PortfolioLoaded) {
+                final holding = portfolioState.stocks.cast<dynamic>().firstWhere(
+                  (s) => s.symbol == widget.stock.symbol,
+                  orElse: () => null,
+                );
+                currentHoldings = holding?.quantity;
+              }
+
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Trade',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      if (currentHoldings != null && currentHoldings > 0) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.profitGreen.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                size: 16,
+                                color: AppColors.profitGreen,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'You own $currentHoldings shares',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppColors.profitGreen,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
+                      ],
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _showTradeDialog(TradeType.buy),
+                              icon: const Icon(Icons.add_shopping_cart),
+                              label: const Text('Buy'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.profitGreen,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: currentHoldings != null && currentHoldings > 0
+                                  ? () => _showTradeDialog(TradeType.sell)
+                                  : null,
+                              icon: const Icon(Icons.sell),
+                              label: const Text('Sell'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.lossRed,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Coming in Phase 8',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey,
-                        ),
-                  ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ],
       ),
