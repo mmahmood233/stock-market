@@ -5,6 +5,7 @@ import '../../bloc/auth/auth_bloc.dart';
 import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../auth/login_page.dart';
+import '../market/market_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -80,7 +81,7 @@ class _HomePageState extends State<HomePage> {
         body: IndexedStack(
           index: _selectedIndex,
           children: const [
-            _MarketTab(),
+            MarketPage(),
             _PortfolioTab(),
             _ProfileTab(),
           ],
@@ -110,32 +111,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _MarketTab extends StatelessWidget {
-  const _MarketTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.show_chart, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Market Tab',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Coming in Phase 5',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
       ),
     );
   }
