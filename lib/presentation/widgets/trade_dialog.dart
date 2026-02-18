@@ -42,7 +42,8 @@ class _TradeDialogState extends State<TradeDialog> {
 
   void _updateTotal() {
     setState(() {
-      _quantity = int.tryParse(_quantityController.text) ?? 0;
+      final parsed = int.tryParse(_quantityController.text) ?? 0;
+      _quantity = parsed < 0 ? 0 : parsed;
       _totalCost = _quantity * widget.stock.currentPrice;
     });
   }
@@ -163,6 +164,7 @@ class _TradeDialogState extends State<TradeDialog> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(9),
                     ],
                     onChanged: (_) => _updateTotal(),
                     validator: (value) {
@@ -203,12 +205,17 @@ class _TradeDialogState extends State<TradeDialog> {
                               'Total ${isBuy ? 'Cost' : 'Revenue'}:',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
-                            Text(
-                              Formatters.formatCurrency(_totalCost),
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: color,
-                                  ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                Formatters.formatCurrency(_totalCost),
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: color,
+                                    ),
+                                textAlign: TextAlign.end,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
@@ -218,14 +225,20 @@ class _TradeDialogState extends State<TradeDialog> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Remaining Balance:',
+                                'Remaining:',
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
-                              Text(
-                                Formatters.formatCurrency(balance - _totalCost),
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  Formatters.formatCurrency(balance - _totalCost),
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: (balance - _totalCost) < 0 ? AppColors.lossRed : null,
+                                      ),
+                                  textAlign: TextAlign.end,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                           ),
