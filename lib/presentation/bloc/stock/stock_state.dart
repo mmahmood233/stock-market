@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/stock.dart';
-import '../../../domain/entities/stock_history.dart';
 
 abstract class StockState extends Equatable {
   const StockState();
@@ -38,19 +37,6 @@ class StockLoaded extends StockState {
       isRealtime: isRealtime ?? this.isRealtime,
     );
   }
-}
-
-class StockHistoryLoaded extends StockState {
-  final String symbol;
-  final List<StockHistory> history;
-
-  const StockHistoryLoaded({
-    required this.symbol,
-    required this.history,
-  });
-
-  @override
-  List<Object?> get props => [symbol, history];
 }
 
 class StockError extends StockState {

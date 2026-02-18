@@ -1,0 +1,12 @@
+{
+  "name": "stock-market-server",
+  "version": "1.0.0",
+  "description": "Mock WebSocket server for stock market simulation",
+  "main": "stock_server.js",
+  "scripts": {
+    "start": "node stock_server.js"
+  },
+  "dependencies": {
+    "ws": "^8.14.2"
+  }
+}

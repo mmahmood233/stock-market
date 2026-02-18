@@ -6,6 +6,7 @@ import 'core/theme/app_theme.dart';
 import 'presentation/bloc/auth/auth_bloc.dart';
 import 'presentation/bloc/portfolio/portfolio_bloc.dart';
 import 'presentation/bloc/stock/stock_bloc.dart';
+import 'presentation/bloc/stock_history/stock_history_bloc.dart';
 import 'presentation/pages/splash_page.dart';
 
 void main() async {
@@ -29,6 +30,9 @@ class StockMarketApp extends StatelessWidget {
         ),
         BlocProvider<PortfolioBloc>(
           create: (_) => InjectionContainer.portfolioBloc,
+        ),
+        BlocProvider<StockHistoryBloc>(
+          create: (_) => InjectionContainer.stockHistoryBloc,
         ),
       ],
       child: MaterialApp(

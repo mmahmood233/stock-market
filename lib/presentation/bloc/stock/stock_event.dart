@@ -19,21 +19,6 @@ class StockRealtimeStopped extends StockEvent {
   const StockRealtimeStopped();
 }
 
-class StockHistoryRequested extends StockEvent {
-  final String symbol;
-  final DateTime startDate;
-  final DateTime endDate;
-
-  const StockHistoryRequested({
-    required this.symbol,
-    required this.startDate,
-    required this.endDate,
-  });
-
-  @override
-  List<Object?> get props => [symbol, startDate, endDate];
-}
-
 class StockRefreshRequested extends StockEvent {
   const StockRefreshRequested();
 }

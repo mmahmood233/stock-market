@@ -13,6 +13,7 @@ import '../../domain/repositories/user_repository.dart';
 import '../../presentation/bloc/auth/auth_bloc.dart';
 import '../../presentation/bloc/portfolio/portfolio_bloc.dart';
 import '../../presentation/bloc/stock/stock_bloc.dart';
+import '../../presentation/bloc/stock_history/stock_history_bloc.dart';
 
 class InjectionContainer {
   static SharedPreferences? _sharedPreferences;
@@ -30,6 +31,7 @@ class InjectionContainer {
   static AuthBloc? _authBloc;
   static StockBloc? _stockBloc;
   static PortfolioBloc? _portfolioBloc;
+  static StockHistoryBloc? _stockHistoryBloc;
 
   static Future<void> init() async {
     _sharedPreferences = await SharedPreferences.getInstance();
@@ -65,16 +67,19 @@ class InjectionContainer {
       portfolioRepository: _portfolioRepository!,
       authBloc: _authBloc!,
     );
+    _stockHistoryBloc = StockHistoryBloc(stockRepository: _stockRepository!);
   }
 
   static AuthBloc get authBloc => _authBloc!;
   static StockBloc get stockBloc => _stockBloc!;
   static PortfolioBloc get portfolioBloc => _portfolioBloc!;
+  static StockHistoryBloc get stockHistoryBloc => _stockHistoryBloc!;
 
   static void dispose() {
     _authBloc?.close();
     _stockBloc?.close();
     _portfolioBloc?.close();
+    _stockHistoryBloc?.close();
     if (_stockRemoteDataSource is StockRemoteDataSourceImpl) {
       (_stockRemoteDataSource as StockRemoteDataSourceImpl).dispose();
     }

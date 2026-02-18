@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/errors/failures.dart';
+import '../../../domain/entities/stock.dart';
 import '../../../domain/repositories/stock_repository.dart';
 import 'stock_event.dart';
 import 'stock_state.dart';
@@ -12,7 +15,6 @@ class StockBloc extends Bloc<StockEvent, StockState> {
     on<StockLoadRequested>(_onLoadRequested);
     on<StockRealtimeStarted>(_onRealtimeStarted);
     on<StockRealtimeStopped>(_onRealtimeStopped);
-    on<StockHistoryRequested>(_onHistoryRequested);
     on<StockRefreshRequested>(_onRefreshRequested);
   }
 
@@ -44,31 +46,25 @@ class StockBloc extends Bloc<StockEvent, StockState> {
 
     emit(const StockLoading());
 
-    _stockSubscription = stockRepository.getRealtimeStocks().listen(
-      (result) {
-        result.fold(
+    await emit.forEach<Either<Failure, List<Stock>>>(
+      stockRepository.getRealtimeStocks(),
+      onData: (result) {
+        return result.fold(
           (failure) {
-            if (!isClosed) {
-              add(const StockLoadRequested());
-            }
+            add(const StockLoadRequested());
+            return StockError(failure.message);
           },
           (stocks) {
-            if (!isClosed) {
-              if (stocks.isEmpty) {
-                emit(const StockEmpty());
-              } else {
-                emit(StockLoaded(stocks: stocks, isRealtime: true));
-              }
+            if (stocks.isEmpty) {
+              return const StockEmpty();
+            } else {
+              return StockLoaded(stocks: stocks, isRealtime: true);
             }
           },
         );
       },
-      onError: (error) {
-        if (!isClosed) {
-          emit(StockError(
-            'Real-time connection failed: $error',
-          ));
-        }
+      onError: (error, stackTrace) {
+        return StockError('Real-time connection failed: $error');
       },
     );
   }
@@ -84,25 +80,6 @@ class StockBloc extends Bloc<StockEvent, StockState> {
       final currentState = state as StockLoaded;
       emit(currentState.copyWith(isRealtime: false));
     }
-  }
-
-  Future<void> _onHistoryRequested(
-    StockHistoryRequested event,
-    Emitter<StockState> emit,
-  ) async {
-    final result = await stockRepository.getStockHistory(
-      symbol: event.symbol,
-      startDate: event.startDate,
-      endDate: event.endDate,
-    );
-
-    result.fold(
-      (failure) => emit(StockError(failure.message)),
-      (history) => emit(StockHistoryLoaded(
-        symbol: event.symbol,
-        history: history,
-      )),
-    );
   }
 
   Future<void> _onRefreshRequested(
