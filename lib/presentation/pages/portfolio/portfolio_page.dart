@@ -7,6 +7,7 @@ import '../../bloc/auth/auth_state.dart';
 import '../../bloc/portfolio/portfolio_bloc.dart';
 import '../../bloc/portfolio/portfolio_event.dart';
 import '../../bloc/portfolio/portfolio_state.dart';
+import '../home/home_page.dart';
 import '../../widgets/portfolio_stock_card.dart';
 import 'transaction_history_page.dart';
 
@@ -124,7 +125,10 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
                   onPressed: () {
-                    DefaultTabController.of(context).animateTo(0);
+                    final homePageState = context.findAncestorStateOfType<HomePageState>();
+                    if (homePageState != null) {
+                      homePageState.navigateToMarket();
+                    }
                   },
                   icon: const Icon(Icons.show_chart),
                   label: const Text('Browse Stocks'),
