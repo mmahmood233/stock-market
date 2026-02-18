@@ -8,6 +8,9 @@ import '../../bloc/portfolio/portfolio_bloc.dart';
 import '../../bloc/portfolio/portfolio_event.dart';
 import '../../bloc/portfolio/portfolio_state.dart';
 import '../home/home_page.dart';
+import '../../bloc/stock/stock_bloc.dart';
+import '../../bloc/stock/stock_state.dart';
+import '../../../domain/entities/portfolio_stock.dart';
 import '../../widgets/portfolio_stock_card.dart';
 import 'transaction_history_page.dart';
 
@@ -139,10 +142,29 @@ class _PortfolioPageState extends State<PortfolioPage> {
         }
 
         if (state is PortfolioLoaded) {
-          final isProfit = state.totalProfitLoss >= 0;
-          final profitColor = isProfit ? AppColors.profitGreen : AppColors.lossRed;
+          return BlocBuilder<StockBloc, StockState>(
+            builder: (context, stockState) {
+              // Override currentPrice with live prices if available
+              List<PortfolioStock> liveStocks = state.stocks;
+              if (stockState is StockLoaded) {
+                liveStocks = state.stocks.map((ps) {
+                  final live = stockState.stocks.firstWhere(
+                    (s) => s.symbol == ps.symbol,
+                    orElse: () => stockState.stocks.first,
+                  );
+                  final matched = stockState.stocks.any((s) => s.symbol == ps.symbol);
+                  return matched ? ps.copyWith(currentPrice: live.currentPrice) : ps;
+                }).toList();
+              }
 
-          return RefreshIndicator(
+              final totalValue = liveStocks.fold<double>(0, (sum, s) => sum + s.currentValue);
+              final totalInvestment = liveStocks.fold<double>(0, (sum, s) => sum + s.totalInvestment);
+              final totalProfitLoss = totalValue - totalInvestment;
+              final totalProfitLossPercentage = totalInvestment > 0 ? (totalProfitLoss / totalInvestment) * 100 : 0.0;
+              final isProfit = totalProfitLoss >= 0;
+              final profitColor = isProfit ? AppColors.profitGreen : AppColors.lossRed;
+
+              return RefreshIndicator(
             onRefresh: () async {
               _loadPortfolio();
               await Future.delayed(const Duration(milliseconds: 500));
@@ -188,7 +210,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          Formatters.formatCurrency(state.totalValue),
+                          Formatters.formatCurrency(totalValue),
                           style: Theme.of(context).textTheme.displaySmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -208,7 +230,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    Formatters.formatCurrency(state.totalInvestment),
+                                    Formatters.formatCurrency(totalInvestment),
                                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -237,7 +259,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                         size: 20,
                                       ),
                                       Text(
-                                        Formatters.formatCurrency(state.totalProfitLoss.abs()),
+                                        Formatters.formatCurrency(totalProfitLoss.abs()),
                                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                               fontWeight: FontWeight.bold,
                                               color: profitColor,
@@ -261,7 +283,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            '${isProfit ? '+' : ''}${Formatters.formatPercentage(state.totalProfitLossPercentage.abs())}',
+                            '${isProfit ? '+' : ''}${Formatters.formatPercentage(totalProfitLossPercentage.abs())}',
                             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                   color: profitColor,
                                   fontWeight: FontWeight.bold,
@@ -277,7 +299,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Holdings (${state.stocks.length})',
+                      'Holdings (${liveStocks.length})',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -285,14 +307,14 @@ class _PortfolioPageState extends State<PortfolioPage> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                ...state.stocks.map((stock) => PortfolioStockCard(
+                ...liveStocks.map((stock) => PortfolioStockCard(
                       stock: stock,
-                      onTap: () {
-                        // Navigate to stock detail
-                      },
+                      onTap: () {},
                     )),
               ],
             ),
+          );
+            },
           );
         }
 
