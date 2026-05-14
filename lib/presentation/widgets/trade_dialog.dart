@@ -48,31 +48,74 @@ class _TradeDialogState extends State<TradeDialog> {
     });
   }
 
-  void _handleTrade() {
+  Future<void> _handleTrade() async {
     if (!_formKey.currentState!.validate()) return;
 
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) return;
+    final isBuy = widget.type == TradeType.buy;
+    final color = isBuy ? AppColors.profitGreen : AppColors.lossRed;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Confirm ${isBuy ? 'Buy' : 'Sell'}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ConfirmRow(label: 'Stock', value: widget.stock.symbol),
+            _ConfirmRow(label: 'Quantity', value: '$_quantity shares'),
+            _ConfirmRow(
+              label: 'Price',
+              value: Formatters.formatCurrency(widget.stock.currentPrice),
+            ),
+            const Divider(height: 24),
+            _ConfirmRow(
+              label: isBuy ? 'Total cost' : 'Total revenue',
+              value: Formatters.formatCurrency(_totalCost),
+              valueColor: color,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(isBuy ? 'Confirm Buy' : 'Confirm Sell'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
 
     if (widget.type == TradeType.buy) {
       context.read<PortfolioBloc>().add(
-            PortfolioBuyStock(
-              userId: authState.user.id,
-              symbol: widget.stock.symbol,
-              name: widget.stock.name,
-              quantity: _quantity,
-              price: widget.stock.currentPrice,
-            ),
-          );
+        PortfolioBuyStock(
+          userId: authState.user.id,
+          symbol: widget.stock.symbol,
+          name: widget.stock.name,
+          quantity: _quantity,
+          price: widget.stock.currentPrice,
+        ),
+      );
     } else {
       context.read<PortfolioBloc>().add(
-            PortfolioSellStock(
-              userId: authState.user.id,
-              symbol: widget.stock.symbol,
-              quantity: _quantity,
-              price: widget.stock.currentPrice,
-            ),
-          );
+        PortfolioSellStock(
+          userId: authState.user.id,
+          symbol: widget.stock.symbol,
+          quantity: _quantity,
+          price: widget.stock.currentPrice,
+        ),
+      );
     }
 
     Navigator.of(context).pop();
@@ -85,15 +128,19 @@ class _TradeDialogState extends State<TradeDialog> {
 
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
-        final balance = authState is AuthAuthenticated ? authState.user.balance : 0.0;
+        final balance = authState is AuthAuthenticated
+            ? authState.user.balance
+            : 0.0;
+        final maxBuyQuantity = widget.stock.currentPrice > 0
+            ? balance ~/ widget.stock.currentPrice
+            : 0;
+        final maxSellQuantity = widget.currentHoldings ?? 0;
+        final maxQuantity = isBuy ? maxBuyQuantity : maxSellQuantity;
 
         return AlertDialog(
           title: Row(
             children: [
-              Icon(
-                isBuy ? Icons.add_shopping_cart : Icons.sell,
-                color: color,
-              ),
+              Icon(isBuy ? Icons.add_shopping_cart : Icons.sell, color: color),
               const SizedBox(width: 8),
               Text(isBuy ? 'Buy Stock' : 'Sell Stock'),
             ],
@@ -108,7 +155,7 @@ class _TradeDialogState extends State<TradeDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
+                      color: AppColors.borderDark,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -116,21 +163,23 @@ class _TradeDialogState extends State<TradeDialog> {
                       children: [
                         Text(
                           widget.stock.symbol,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           widget.stock.name,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.mutedText),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           Formatters.formatCurrency(widget.stock.currentPrice),
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -140,8 +189,8 @@ class _TradeDialogState extends State<TradeDialog> {
                     Text(
                       'Available: ${widget.currentHoldings} shares',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey,
-                          ),
+                        color: AppColors.mutedText,
+                      ),
                     ),
                     const SizedBox(height: 8),
                   ],
@@ -149,18 +198,30 @@ class _TradeDialogState extends State<TradeDialog> {
                     Text(
                       'Balance: ${Formatters.formatCurrency(balance)}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey,
-                          ),
+                        color: AppColors.mutedText,
+                      ),
                     ),
                     const SizedBox(height: 8),
                   ],
                   TextFormField(
                     controller: _quantityController,
-                    decoration: const InputDecoration(
-                      labelText: 'Quantity',
-                      hintText: 'Enter number of shares',
-                      prefixIcon: Icon(Icons.numbers),
-                    ),
+                    decoration:
+                        const InputDecoration(
+                          labelText: 'Quantity',
+                          hintText: 'Enter number of shares',
+                          prefixIcon: Icon(Icons.numbers),
+                        ).copyWith(
+                          suffixIcon: TextButton(
+                            onPressed: maxQuantity > 0
+                                ? () {
+                                    _quantityController.text = maxQuantity
+                                        .toString();
+                                    _updateTotal();
+                                  }
+                                : null,
+                            child: const Text('Max'),
+                          ),
+                        ),
                     keyboardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
@@ -175,13 +236,23 @@ class _TradeDialogState extends State<TradeDialog> {
                       if (qty == null || qty <= 0) {
                         return 'Please enter a valid quantity';
                       }
+                      if (widget.stock.currentPrice <= 0) {
+                        return 'Stock price is not available';
+                      }
                       if (isBuy) {
                         final cost = qty * widget.stock.currentPrice;
                         if (cost > balance) {
                           return 'Insufficient balance';
                         }
+                        if (qty > maxBuyQuantity) {
+                          return 'Maximum buy quantity is $maxBuyQuantity';
+                        }
                       } else {
-                        if (widget.currentHoldings != null && qty > widget.currentHoldings!) {
+                        if (widget.currentHoldings == null ||
+                            widget.currentHoldings == 0) {
+                          return 'You do not own this stock';
+                        }
+                        if (qty > widget.currentHoldings!) {
                           return 'Insufficient shares';
                         }
                       }
@@ -209,7 +280,8 @@ class _TradeDialogState extends State<TradeDialog> {
                             Flexible(
                               child: Text(
                                 Formatters.formatCurrency(_totalCost),
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: color,
                                     ),
@@ -231,10 +303,15 @@ class _TradeDialogState extends State<TradeDialog> {
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
-                                  Formatters.formatCurrency(balance - _totalCost),
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  Formatters.formatCurrency(
+                                    balance - _totalCost,
+                                  ),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
                                         fontWeight: FontWeight.bold,
-                                        color: (balance - _totalCost) < 0 ? AppColors.lossRed : null,
+                                        color: (balance - _totalCost) < 0
+                                            ? AppColors.lossRed
+                                            : AppColors.profitGreen,
                                       ),
                                   textAlign: TextAlign.end,
                                   overflow: TextOverflow.ellipsis,
@@ -264,6 +341,47 @@ class _TradeDialogState extends State<TradeDialog> {
           ],
         );
       },
+    );
+  }
+}
+
+class _ConfirmRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  const _ConfirmRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
+          ),
+          const SizedBox(width: 16),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: valueColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

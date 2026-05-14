@@ -126,9 +126,9 @@ class _StockDetailPageState extends State<StockDetailPage> {
                       const SizedBox(height: 8),
                       Text(
                         currentStock.symbol,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.primary,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       Text(
@@ -137,24 +137,23 @@ class _StockDetailPageState extends State<StockDetailPage> {
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            isPositive
-                                ? Icons.arrow_drop_up
-                                : Icons.arrow_drop_down,
-                            color: changeColor,
-                            size: 24,
-                          ),
-                          Text(
-                            '${Formatters.formatCurrency(currentStock.changeAmount.abs())} (${Formatters.formatPercentage(currentStock.changePercentage.abs())})',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  color: changeColor,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                        ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: changeColor,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${isPositive ? '+' : '-'}${Formatters.formatCurrency(currentStock.changeAmount.abs())} (${Formatters.formatPercentage(currentStock.changePercentage.abs())})',
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
                       ),
                     ],
                   ),
@@ -242,7 +241,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
                                     const Icon(
                                       Icons.error_outline,
                                       size: 48,
-                                      color: Colors.grey,
+                                      color: AppColors.mutedText,
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
@@ -391,7 +390,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
           label,
           style: Theme.of(
             context,
-          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
         ),
         Text(
           value,

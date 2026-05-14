@@ -7,40 +7,38 @@ class StockCard extends StatelessWidget {
   final Stock stock;
   final VoidCallback onTap;
 
-  const StockCard({
-    super.key,
-    required this.stock,
-    required this.onTap,
-  });
+  const StockCard({super.key, required this.stock, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final isPositive = stock.isPositive;
     final changeColor = isPositive ? AppColors.profitGreen : AppColors.lossRed;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.borderDark)),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.primary.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Center(
                   child: Text(
                     stock.symbol.substring(0, 1),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -52,15 +50,15 @@ class StockCard extends StatelessWidget {
                     Text(
                       stock.symbol,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       stock.name,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey,
-                          ),
+                        color: AppColors.mutedText,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -74,39 +72,25 @@ class StockCard extends StatelessWidget {
                   Text(
                     Formatters.formatCurrency(stock.currentPrice),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
+                      horizontal: 10,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: changeColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
+                      color: changeColor,
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isPositive
-                              ? Icons.arrow_drop_up
-                              : Icons.arrow_drop_down,
-                          color: changeColor,
-                          size: 16,
-                        ),
-                        Text(
-                          Formatters.formatPercentage(
-                            stock.changePercentage.abs(),
-                          ),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: changeColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ],
+                    child: Text(
+                      '${isPositive ? '+' : '-'}${Formatters.formatPercentage(stock.changePercentage.abs())}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],

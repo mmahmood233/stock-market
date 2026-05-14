@@ -33,11 +33,11 @@ class _MarketPageState extends State<MarketPage> {
 
   List<Stock> _filterStocks(List<Stock> stocks) {
     if (_searchQuery.isEmpty) return stocks;
-    
+
     return stocks.where((stock) {
       final query = _searchQuery.toLowerCase();
       return stock.symbol.toLowerCase().contains(query) ||
-             stock.name.toLowerCase().contains(query);
+          stock.name.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -46,38 +46,80 @@ class _MarketPageState extends State<MarketPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search stocks...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() {
-                          _searchQuery = '';
-                        });
-                      },
-                    )
-                  : null,
-            ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Markets',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '20 monitored stocks with live 5 Hz updates',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.mutedText),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search symbol or company',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+              ),
+            ],
           ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Pair',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.mutedText),
+                ),
+              ),
+              Text(
+                'Last Price / Change',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.mutedText),
+              ),
+            ],
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Divider(height: 1, color: AppColors.borderDark),
         ),
         Expanded(
           child: BlocBuilder<StockBloc, StockState>(
             builder: (context, state) {
               if (state is StockLoading) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
 
               if (state is StockError) {
@@ -101,24 +143,28 @@ class _MarketPageState extends State<MarketPage> {
                         child: Text(
                           state.message,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey,
-                              ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.mutedText),
                         ),
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
                         onPressed: () {
-                          context.read<StockBloc>().add(const StockRefreshRequested());
+                          context.read<StockBloc>().add(
+                            const StockRefreshRequested(),
+                          );
                         },
                         icon: const Icon(Icons.refresh),
                         label: const Text('Retry'),
                       ),
-                      if (state.cachedStocks != null && state.cachedStocks!.isNotEmpty) ...[
+                      if (state.cachedStocks != null &&
+                          state.cachedStocks!.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         TextButton(
                           onPressed: () {
-                            context.read<StockBloc>().add(const StockLoadRequested());
+                            context.read<StockBloc>().add(
+                              const StockLoadRequested(),
+                            );
                           },
                           child: const Text('View Cached Data'),
                         ),
@@ -136,7 +182,7 @@ class _MarketPageState extends State<MarketPage> {
                       const Icon(
                         Icons.inbox_outlined,
                         size: 64,
-                        color: Colors.grey,
+                        color: AppColors.mutedText,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -146,7 +192,9 @@ class _MarketPageState extends State<MarketPage> {
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
                         onPressed: () {
-                          context.read<StockBloc>().add(const StockRefreshRequested());
+                          context.read<StockBloc>().add(
+                            const StockRefreshRequested(),
+                          );
                         },
                         icon: const Icon(Icons.refresh),
                         label: const Text('Refresh'),
@@ -167,7 +215,7 @@ class _MarketPageState extends State<MarketPage> {
                         const Icon(
                           Icons.search_off,
                           size: 64,
-                          color: Colors.grey,
+                          color: AppColors.mutedText,
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -177,9 +225,8 @@ class _MarketPageState extends State<MarketPage> {
                         const SizedBox(height: 8),
                         Text(
                           'Try a different search term',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey,
-                              ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: AppColors.mutedText),
                         ),
                       ],
                     ),
@@ -188,7 +235,9 @@ class _MarketPageState extends State<MarketPage> {
 
                 return RefreshIndicator(
                   onRefresh: () async {
-                    context.read<StockBloc>().add(const StockRefreshRequested());
+                    context.read<StockBloc>().add(
+                      const StockRefreshRequested(),
+                    );
                     await Future.delayed(const Duration(milliseconds: 500));
                   },
                   child: ListView.builder(
@@ -200,32 +249,34 @@ class _MarketPageState extends State<MarketPage> {
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Row(
                             children: [
-                              Icon(
-                                state.isRealtime
-                                    ? Icons.wifi
-                                    : Icons.wifi_off,
-                                size: 16,
-                                color: state.isRealtime
-                                    ? AppColors.success
-                                    : Colors.grey,
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: state.isRealtime
+                                      ? AppColors.success
+                                      : AppColors.mutedText,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 state.isRealtime
-                                    ? 'Live Updates'
-                                    : 'Offline Mode',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    ? 'Live market'
+                                    : 'Offline mode',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
                                       color: state.isRealtime
                                           ? AppColors.success
-                                          : Colors.grey,
+                                          : AppColors.mutedText,
+                                      fontWeight: FontWeight.w700,
                                     ),
                               ),
                               const Spacer(),
                               Text(
                                 '${filteredStocks.length} stocks',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Colors.grey,
-                                    ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppColors.mutedText),
                               ),
                             ],
                           ),
@@ -248,9 +299,7 @@ class _MarketPageState extends State<MarketPage> {
                 );
               }
 
-              return const Center(
-                child: Text('Unknown state'),
-              );
+              return const Center(child: Text('Unknown state'));
             },
           ),
         ),

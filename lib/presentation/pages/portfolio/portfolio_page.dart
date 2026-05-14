@@ -11,7 +11,9 @@ import '../home/home_page.dart';
 import '../../bloc/stock/stock_bloc.dart';
 import '../../bloc/stock/stock_state.dart';
 import '../../../domain/entities/portfolio_stock.dart';
+import '../../../domain/entities/stock.dart';
 import '../../widgets/portfolio_stock_card.dart';
+import '../stock_detail/stock_detail_page.dart';
 import 'transaction_history_page.dart';
 
 class PortfolioPage extends StatefulWidget {
@@ -88,9 +90,9 @@ class _PortfolioPageState extends State<PortfolioPage> {
                   child: Text(
                     state.message,
                     textAlign: TextAlign.center,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.mutedText,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -112,7 +114,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                 const Icon(
                   Icons.account_balance_wallet_outlined,
                   size: 80,
-                  color: Colors.grey,
+                  color: AppColors.mutedText,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -126,7 +128,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                   'Start trading to build your wallet',
                   style: Theme.of(
                     context,
-                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
@@ -199,7 +201,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                 Text(
                                   'Total Value',
                                   style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(color: Colors.grey),
+                                      ?.copyWith(color: AppColors.mutedText),
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.history),
@@ -244,7 +246,9 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall
-                                            ?.copyWith(color: Colors.grey),
+                                            ?.copyWith(
+                                              color: AppColors.mutedText,
+                                            ),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
@@ -271,7 +275,9 @@ class _PortfolioPageState extends State<PortfolioPage> {
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall
-                                            ?.copyWith(color: Colors.grey),
+                                            ?.copyWith(
+                                              color: AppColors.mutedText,
+                                            ),
                                       ),
                                       const SizedBox(height: 4),
                                       Row(
@@ -338,7 +344,21 @@ class _PortfolioPageState extends State<PortfolioPage> {
                     ),
                     const SizedBox(height: 12),
                     ...liveStocks.map(
-                      (stock) => PortfolioStockCard(stock: stock, onTap: () {}),
+                      (stock) => PortfolioStockCard(
+                        stock: stock,
+                        onTap: () {
+                          final detailStock = _stockForDetail(
+                            stock,
+                            stockState is StockLoaded ? stockState : null,
+                          );
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  StockDetailPage(stock: detailStock),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -355,6 +375,34 @@ class _PortfolioPageState extends State<PortfolioPage> {
           ),
         );
       },
+    );
+  }
+
+  Stock _stockForDetail(PortfolioStock stock, StockLoaded? stockState) {
+    if (stockState != null) {
+      final liveIndex = stockState.stocks.indexWhere(
+        (liveStock) => liveStock.symbol == stock.symbol,
+      );
+      if (liveIndex != -1) {
+        return stockState.stocks[liveIndex];
+      }
+    }
+
+    return Stock(
+      symbol: stock.symbol,
+      name: stock.name,
+      currentPrice: stock.currentPrice,
+      previousClose: stock.averageBuyPrice,
+      changeAmount: stock.currentPrice - stock.averageBuyPrice,
+      changePercentage: stock.averageBuyPrice > 0
+          ? ((stock.currentPrice - stock.averageBuyPrice) /
+                    stock.averageBuyPrice) *
+                100
+          : 0,
+      dayHigh: stock.currentPrice,
+      dayLow: stock.currentPrice,
+      volume: 0,
+      lastUpdated: stock.lastUpdated,
     );
   }
 }

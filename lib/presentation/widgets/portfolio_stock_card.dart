@@ -19,31 +19,31 @@ class PortfolioStockCard extends StatelessWidget {
     final profitColor = isProfit ? AppColors.profitGreen : AppColors.lossRed;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.primary.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Center(
                       child: Text(
                         stock.symbol.substring(0, 1),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -54,16 +54,14 @@ class PortfolioStockCard extends StatelessWidget {
                       children: [
                         Text(
                           stock.symbol,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           '${stock.quantity} shares',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.mutedText),
                         ),
                       ],
                     ),
@@ -73,9 +71,8 @@ class PortfolioStockCard extends StatelessWidget {
                     children: [
                       Text(
                         Formatters.formatCurrency(stock.currentValue),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 2),
                       Container(
@@ -84,29 +81,16 @@ class PortfolioStockCard extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: profitColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
+                          color: profitColor,
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              isProfit
-                                  ? Icons.arrow_drop_up
-                                  : Icons.arrow_drop_down,
-                              color: profitColor,
-                              size: 16,
-                            ),
-                            Text(
-                              Formatters.formatPercentage(
-                                stock.profitLossPercentage.abs(),
+                        child: Text(
+                          '${isProfit ? '+' : '-'}${Formatters.formatPercentage(stock.profitLossPercentage.abs())}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
                               ),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: profitColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ],
                         ),
                       ),
                     ],
@@ -160,17 +144,17 @@ class PortfolioStockCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: AppColors.mutedText),
         ),
         const SizedBox(height: 4),
         Text(
           value,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
       ],
     );
