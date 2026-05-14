@@ -48,14 +48,12 @@ Each update sends an array of stock objects:
   {
     "symbol": "AAPL",
     "name": "Apple Inc.",
-    "currentPrice": 178.50,
-    "changeAmount": 0.70,
-    "changePercentage": 0.39,
+    "price": 178.50,
     "previousClose": 177.80,
     "dayHigh": 179.20,
     "dayLow": 177.30,
     "volume": 45678900,
-    "lastUpdated": "2026-02-17T08:43:00.000Z"
+    "timestamp": "2026-02-17T08:43:00.000Z"
   },
   ...
 ]

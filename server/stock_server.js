@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 
-const PORT = 8080;
+const PORT = Number(process.env.PORT || 8080);
 const UPDATE_INTERVAL = 200; // 5 times per second
 
 // Stock data with initial prices

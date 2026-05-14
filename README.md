@@ -81,8 +81,8 @@ lib/
 - ✅ Insufficient shares prevention
 - ✅ Transaction confirmation dialogs
 
-### Portfolio Management
-- ✅ Portfolio summary with total metrics
+### Wallet Management
+- ✅ Wallet summary with total metrics
 - ✅ Total value, investment, and P/L display
 - ✅ Individual stock holdings
 - ✅ Quantity, average price, current value per stock
@@ -125,9 +125,20 @@ lib/
    flutter pub get
    ```
 
-3. Run the app:
+3. Start the mock stock server:
+   ```bash
+   cd server
+   npm start
+   ```
+
+4. Run the app:
    ```bash
    flutter run
+   ```
+
+   The app uses `ws://localhost:8080` by default, and `ws://10.0.2.2:8080` on the Android emulator. For a physical device, pass the server host explicitly:
+   ```bash
+   flutter run --dart-define=STOCK_WS_URL=ws://YOUR_COMPUTER_IP:8080
    ```
 
 ### Quick Start Guide
@@ -136,7 +147,7 @@ lib/
 2. **Explore Market**: Browse 20 stocks with real-time prices
 3. **View Details**: Tap any stock to see charts and details
 4. **Buy Stocks**: Use your $1,000,000 to purchase shares
-5. **Track Portfolio**: Monitor your holdings and profit/loss
+5. **Track Wallet**: Monitor your holdings and profit/loss
 6. **Sell Stocks**: Sell shares when ready
 7. **View History**: Check all your transactions
 

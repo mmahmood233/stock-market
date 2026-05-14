@@ -1,12 +1,14 @@
+import '../config/stock_server_config.dart';
+
 class AppConstants {
   static const String appName = 'Stock Market';
-  
+
   static const double initialBalance = 1000000.0;
-  
+
   static const int stockUpdateFrequency = 200;
-  
+
   static const int numberOfStocksToMonitor = 20;
-  
+
   static const List<String> monitoredStocks = [
     'AAPL',
     'GOOGL',
@@ -29,6 +31,9 @@ class AppConstants {
     'SNAP',
     'SPOT',
   ];
-  
-  static const String baseUrl = 'ws://localhost:8080';
+
+  static String get baseUrl {
+    const configuredUrl = String.fromEnvironment('STOCK_WS_URL');
+    return configuredUrl.isNotEmpty ? configuredUrl : defaultStockServerUrl;
+  }
 }

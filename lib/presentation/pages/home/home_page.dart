@@ -47,7 +47,8 @@ class HomePageState extends State<HomePage> {
                     child: Center(
                       child: Text(
                         Formatters.formatCurrency(state.user.balance),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.primary,
                             ),
@@ -74,7 +75,9 @@ class HomePageState extends State<HomePage> {
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          context.read<AuthBloc>().add(const AuthLogoutRequested());
+                          context.read<AuthBloc>().add(
+                            const AuthLogoutRequested(),
+                          );
                         },
                         child: const Text('Logout'),
                       ),
@@ -87,11 +90,7 @@ class HomePageState extends State<HomePage> {
         ),
         body: IndexedStack(
           index: _selectedIndex,
-          children: const [
-            MarketPage(),
-            PortfolioPage(),
-            _ProfileTab(),
-          ],
+          children: const [MarketPage(), PortfolioPage(), _ProfileTab()],
         ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _selectedIndex,
@@ -109,7 +108,7 @@ class HomePageState extends State<HomePage> {
             NavigationDestination(
               icon: Icon(Icons.account_balance_wallet_outlined),
               selectedIcon: Icon(Icons.account_balance_wallet),
-              label: 'Portfolio',
+              label: 'Wallet',
             ),
             NavigationDestination(
               icon: Icon(Icons.person_outlined),
@@ -142,27 +141,33 @@ class _ProfileTab extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 40,
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
                         child: Text(
-                          user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          user.name.isNotEmpty
+                              ? user.name[0].toUpperCase()
+                              : 'U',
+                          style: Theme.of(context).textTheme.headlineLarge
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
                               ),
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         user.name,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         user.email,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                       ),
                     ],
                   ),
@@ -177,7 +182,8 @@ class _ProfileTab extends StatelessWidget {
                       title: const Text('Balance'),
                       trailing: Text(
                         Formatters.formatCurrency(user.balance),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.primary,
                             ),

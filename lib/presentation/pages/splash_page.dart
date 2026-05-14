@@ -15,10 +15,15 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  bool _hasCheckedAuth = false;
+
   @override
-  void initState() {
-    super.initState();
-    context.read<AuthBloc>().add(const AuthCheckStatus());
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasCheckedAuth) {
+      _hasCheckedAuth = true;
+      context.read<AuthBloc>().add(const AuthCheckStatus());
+    }
   }
 
   @override
@@ -49,8 +54,8 @@ class _SplashPageState extends State<SplashPage> {
               Text(
                 AppConstants.appName,
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 48),
               const CircularProgressIndicator(),

@@ -10,10 +10,8 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
   final PortfolioRepository portfolioRepository;
   final AuthBloc authBloc;
 
-  PortfolioBloc({
-    required this.portfolioRepository,
-    required this.authBloc,
-  }) : super(const PortfolioInitial()) {
+  PortfolioBloc({required this.portfolioRepository, required this.authBloc})
+    : super(const PortfolioInitial()) {
     on<PortfolioLoadRequested>(_onLoadRequested);
     on<PortfolioBuyStock>(_onBuyStock);
     on<PortfolioSellStock>(_onSellStock);
@@ -30,16 +28,13 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
 
     final result = await portfolioRepository.getPortfolio(event.userId);
 
-    result.fold(
-      (failure) => emit(PortfolioError(failure.message)),
-      (stocks) {
-        if (stocks.isEmpty) {
-          emit(const PortfolioEmpty());
-        } else {
-          emit(PortfolioLoaded.fromStocks(stocks));
-        }
-      },
-    );
+    result.fold((failure) => emit(PortfolioError(failure.message)), (stocks) {
+      if (stocks.isEmpty) {
+        emit(const PortfolioEmpty());
+      } else {
+        emit(PortfolioLoaded.fromStocks(stocks));
+      }
+    });
   }
 
   Future<void> _onBuyStock(
@@ -49,6 +44,18 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
     emit(const PortfolioLoading());
 
     final totalCost = event.quantity * event.price;
+    final currentState = authBloc.state;
+
+    if (currentState is! AuthAuthenticated ||
+        currentState.user.id != event.userId) {
+      emit(const PortfolioError('You must be logged in to buy stocks'));
+      return;
+    }
+
+    if (totalCost > currentState.user.balance) {
+      emit(const PortfolioError('Insufficient balance'));
+      return;
+    }
 
     final result = await portfolioRepository.buyStock(
       userId: event.userId,
@@ -58,22 +65,21 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
       price: event.price,
     );
 
-    await result.fold(
-      (failure) async => emit(PortfolioError(failure.message)),
-      (transaction) async {
-        final currentState = authBloc.state;
-        if (currentState is AuthAuthenticated) {
-          authBloc.add(AuthUpdateBalance(currentState.user.balance - totalCost));
-        }
+    await result.fold((failure) async => emit(PortfolioError(failure.message)), (
+      transaction,
+    ) async {
+      authBloc.add(AuthUpdateBalance(currentState.user.balance - totalCost));
 
-        emit(PortfolioTransactionSuccess(
+      emit(
+        PortfolioTransactionSuccess(
           transaction: transaction,
-          message: 'Successfully bought ${event.quantity} shares of ${event.symbol}',
-        ));
+          message:
+              'Successfully bought ${event.quantity} shares of ${event.symbol}',
+        ),
+      );
 
-        add(PortfolioLoadRequested(event.userId));
-      },
-    );
+      add(PortfolioLoadRequested(event.userId));
+    });
   }
 
   Future<void> _onSellStock(
@@ -96,13 +102,18 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
       (transaction) async {
         final currentState = authBloc.state;
         if (currentState is AuthAuthenticated) {
-          authBloc.add(AuthUpdateBalance(currentState.user.balance + totalRevenue));
+          authBloc.add(
+            AuthUpdateBalance(currentState.user.balance + totalRevenue),
+          );
         }
 
-        emit(PortfolioTransactionSuccess(
-          transaction: transaction,
-          message: 'Successfully sold ${event.quantity} shares of ${event.symbol}',
-        ));
+        emit(
+          PortfolioTransactionSuccess(
+            transaction: transaction,
+            message:
+                'Successfully sold ${event.quantity} shares of ${event.symbol}',
+          ),
+        );
 
         add(PortfolioLoadRequested(event.userId));
       },
@@ -130,7 +141,9 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
   ) async {
     emit(const PortfolioLoading());
 
-    final result = await portfolioRepository.getTransactionHistory(event.userId);
+    final result = await portfolioRepository.getTransactionHistory(
+      event.userId,
+    );
 
     result.fold(
       (failure) => emit(PortfolioError(failure.message)),

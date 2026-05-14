@@ -19,10 +19,7 @@ import '../../widgets/trade_dialog.dart';
 class StockDetailPage extends StatefulWidget {
   final Stock stock;
 
-  const StockDetailPage({
-    super.key,
-    required this.stock,
-  });
+  const StockDetailPage({super.key, required this.stock});
 
   @override
   State<StockDetailPage> createState() => _StockDetailPageState();
@@ -39,26 +36,26 @@ class _StockDetailPageState extends State<StockDetailPage> {
   void _loadHistoricalData() {
     final endDate = DateTime.now();
     final startDate = endDate.subtract(const Duration(days: 365));
-    
+
     context.read<StockHistoryBloc>().add(
-          StockHistoryRequested(
-            symbol: widget.stock.symbol,
-            startDate: startDate,
-            endDate: endDate,
-          ),
-        );
+      StockHistoryRequested(
+        symbol: widget.stock.symbol,
+        startDate: startDate,
+        endDate: endDate,
+      ),
+    );
   }
 
   void _loadPortfolio() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
       context.read<PortfolioBloc>().add(
-            PortfolioLoadRequested(authState.user.id),
-          );
+        PortfolioLoadRequested(authState.user.id),
+      );
     }
   }
 
-  void _showTradeDialog(TradeType type) {
+  void _showTradeDialog(TradeType type, Stock stock) {
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) return;
 
@@ -66,7 +63,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
     final portfolioState = context.read<PortfolioBloc>().state;
     if (portfolioState is PortfolioLoaded) {
       final holding = portfolioState.stocks.cast<dynamic>().firstWhere(
-        (s) => s.symbol == widget.stock.symbol,
+        (s) => s.symbol == stock.symbol,
         orElse: () => null,
       );
       currentHoldings = holding?.quantity;
@@ -80,7 +77,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
           BlocProvider.value(value: context.read<PortfolioBloc>()),
         ],
         child: TradeDialog(
-          stock: widget.stock,
+          stock: stock,
           type: type,
           currentHoldings: currentHoldings,
         ),
@@ -102,14 +99,14 @@ class _StockDetailPageState extends State<StockDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.stock.symbol),
-      ),
+      appBar: AppBar(title: Text(widget.stock.symbol)),
       body: BlocBuilder<StockBloc, StockState>(
         builder: (context, stockState) {
           final currentStock = _getCurrentStock(stockState);
           final isPositive = currentStock.isPositive;
-          final changeColor = isPositive ? AppColors.profitGreen : AppColors.lossRed;
+          final changeColor = isPositive
+              ? AppColors.profitGreen
+              : AppColors.lossRed;
 
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -123,22 +120,21 @@ class _StockDetailPageState extends State<StockDetailPage> {
                       Text(
                         currentStock.name,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         currentStock.symbol,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
                       ),
                       const SizedBox(height: 24),
                       Text(
                         Formatters.formatCurrency(currentStock.currentPrice),
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -152,7 +148,8 @@ class _StockDetailPageState extends State<StockDetailPage> {
                           ),
                           Text(
                             '${Formatters.formatCurrency(currentStock.changeAmount.abs())} (${Formatters.formatPercentage(currentStock.changePercentage.abs())})',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
                                   color: changeColor,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -172,9 +169,8 @@ class _StockDetailPageState extends State<StockDetailPage> {
                     children: [
                       Text(
                         'Market Data',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 16),
                       _buildDataRow(
@@ -210,80 +206,80 @@ class _StockDetailPageState extends State<StockDetailPage> {
                   ),
                 ),
               ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Historical Chart',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+              const SizedBox(height: 16),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Historical Chart',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      BlocBuilder<StockHistoryBloc, StockHistoryState>(
+                        builder: (context, state) {
+                          if (state is StockHistoryLoaded &&
+                              state.symbol == widget.stock.symbol) {
+                            return StockChart(
+                              history: state.history,
+                              isLoading: false,
+                            );
+                          } else if (state is StockHistoryLoading) {
+                            return const StockChart(
+                              history: [],
+                              isLoading: true,
+                            );
+                          } else if (state is StockHistoryError) {
+                            return SizedBox(
+                              height: 300,
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.error_outline,
+                                      size: 48,
+                                      color: Colors.grey,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Failed to load chart',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextButton.icon(
+                                      onPressed: _loadHistoricalData,
+                                      icon: const Icon(Icons.refresh),
+                                      label: const Text('Retry'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          return const StockChart(history: [], isLoading: true);
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  BlocBuilder<StockHistoryBloc, StockHistoryState>(
-                    builder: (context, state) {
-                      if (state is StockHistoryLoaded && 
-                          state.symbol == widget.stock.symbol) {
-                        return StockChart(
-                          history: state.history,
-                          isLoading: false,
-                        );
-                      } else if (state is StockHistoryLoading) {
-                        return const StockChart(
-                          history: [],
-                          isLoading: true,
-                        );
-                      } else if (state is StockHistoryError) {
-                        return SizedBox(
-                          height: 300,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.error_outline,
-                                  size: 48,
-                                  color: Colors.grey,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Failed to load chart',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                TextButton.icon(
-                                  onPressed: _loadHistoricalData,
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Retry'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-                      return const StockChart(
-                        history: [],
-                        isLoading: true,
-                      );
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
               const SizedBox(height: 16),
               BlocBuilder<PortfolioBloc, PortfolioState>(
                 builder: (context, portfolioState) {
                   int? currentHoldings;
                   if (portfolioState is PortfolioLoaded) {
-                    final holding = portfolioState.stocks.cast<dynamic>().firstWhere(
-                      (s) => s.symbol == currentStock.symbol,
-                      orElse: () => null,
-                    );
+                    final holding = portfolioState.stocks
+                        .cast<dynamic>()
+                        .firstWhere(
+                          (s) => s.symbol == currentStock.symbol,
+                          orElse: () => null,
+                        );
                     currentHoldings = holding?.quantity;
                   }
 
@@ -295,16 +291,18 @@ class _StockDetailPageState extends State<StockDetailPage> {
                         children: [
                           Text(
                             'Trade',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                          if (currentHoldings != null && currentHoldings > 0) ...[
+                          if (currentHoldings != null &&
+                              currentHoldings > 0) ...[
                             const SizedBox(height: 8),
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppColors.profitGreen.withValues(alpha: 0.1),
+                                color: AppColors.profitGreen.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Row(
@@ -318,7 +316,8 @@ class _StockDetailPageState extends State<StockDetailPage> {
                                   const SizedBox(width: 4),
                                   Text(
                                     'You own $currentHoldings shares',
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
                                           color: AppColors.profitGreen,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -332,28 +331,40 @@ class _StockDetailPageState extends State<StockDetailPage> {
                             children: [
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: () => _showTradeDialog(TradeType.buy),
+                                  onPressed: () => _showTradeDialog(
+                                    TradeType.buy,
+                                    currentStock,
+                                  ),
                                   icon: const Icon(Icons.add_shopping_cart),
                                   label: const Text('Buy'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.profitGreen,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: ElevatedButton.icon(
-                                  onPressed: currentHoldings != null && currentHoldings > 0
-                                      ? () => _showTradeDialog(TradeType.sell)
+                                  onPressed:
+                                      currentHoldings != null &&
+                                          currentHoldings > 0
+                                      ? () => _showTradeDialog(
+                                          TradeType.sell,
+                                          currentStock,
+                                        )
                                       : null,
                                   icon: const Icon(Icons.sell),
                                   label: const Text('Sell'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.lossRed,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -378,15 +389,15 @@ class _StockDetailPageState extends State<StockDetailPage> {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
         ),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
       ],
     );
