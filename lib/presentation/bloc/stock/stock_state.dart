@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/stock.dart';
 
+/// Base class for stock list states rendered by [MarketPage].
 abstract class StockState extends Equatable {
   const StockState();
 
@@ -8,30 +9,30 @@ abstract class StockState extends Equatable {
   List<Object?> get props => [];
 }
 
+/// No stock request has started yet.
 class StockInitial extends StockState {
   const StockInitial();
 }
 
+/// Market page should show a loading spinner.
 class StockLoading extends StockState {
   const StockLoading();
 }
 
+/// Market page should show [stocks].
+///
+/// [isRealtime] tells the UI whether the list came from the live WebSocket.
 class StockLoaded extends StockState {
   final List<Stock> stocks;
   final bool isRealtime;
 
-  const StockLoaded({
-    required this.stocks,
-    this.isRealtime = false,
-  });
+  const StockLoaded({required this.stocks, this.isRealtime = false});
 
   @override
   List<Object?> get props => [stocks, isRealtime];
 
-  StockLoaded copyWith({
-    List<Stock>? stocks,
-    bool? isRealtime,
-  }) {
+  /// Creates a new state when only some fields change.
+  StockLoaded copyWith({List<Stock>? stocks, bool? isRealtime}) {
     return StockLoaded(
       stocks: stocks ?? this.stocks,
       isRealtime: isRealtime ?? this.isRealtime,
@@ -39,6 +40,9 @@ class StockLoaded extends StockState {
   }
 }
 
+/// Stock loading failed.
+///
+/// [cachedStocks] can be used later if the UI wants to offer cached data.
 class StockError extends StockState {
   final String message;
   final List<Stock>? cachedStocks;
@@ -49,6 +53,7 @@ class StockError extends StockState {
   List<Object?> get props => [message, cachedStocks];
 }
 
+/// No stocks were returned.
 class StockEmpty extends StockState {
   const StockEmpty();
 }

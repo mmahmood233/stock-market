@@ -7,6 +7,10 @@ import '../../../domain/repositories/stock_repository.dart';
 import 'stock_event.dart';
 import 'stock_state.dart';
 
+/// Handles live market data.
+///
+/// [MarketPage] starts this BLoC. It calls [StockRepository], listens to the
+/// WebSocket stream, and emits states used by Market and Stock Detail screens.
 class StockBloc extends Bloc<StockEvent, StockState> {
   final StockRepository stockRepository;
   StreamSubscription? _stockSubscription;
@@ -24,18 +28,16 @@ class StockBloc extends Bloc<StockEvent, StockState> {
   ) async {
     emit(const StockLoading());
 
+    // Used when the live connection fails and the user wants cached data.
     final result = await stockRepository.getCachedStocks();
 
-    result.fold(
-      (failure) => emit(StockError(failure.message)),
-      (stocks) {
-        if (stocks.isEmpty) {
-          emit(const StockEmpty());
-        } else {
-          emit(StockLoaded(stocks: stocks));
-        }
-      },
-    );
+    result.fold((failure) => emit(StockError(failure.message)), (stocks) {
+      if (stocks.isEmpty) {
+        emit(const StockEmpty());
+      } else {
+        emit(StockLoaded(stocks: stocks));
+      }
+    });
   }
 
   Future<void> _onRealtimeStarted(
@@ -46,11 +48,13 @@ class StockBloc extends Bloc<StockEvent, StockState> {
 
     emit(const StockLoading());
 
+    // emit.forEach keeps the UI updated every time the server sends prices.
     await emit.forEach<Either<Failure, List<Stock>>>(
       stockRepository.getRealtimeStocks(),
       onData: (result) {
         return result.fold(
           (failure) {
+            // Try to load cache after a live stream failure.
             add(const StockLoadRequested());
             return StockError(failure.message);
           },

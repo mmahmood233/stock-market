@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
+/// App-wide theme.
+///
+/// [StockMarketApp] applies this theme in [MaterialApp]. Both light and dark
+/// getters return the same exchange-style dark theme so the UI always has the
+/// trading look requested for the project.
 class AppTheme {
   static ThemeData get lightTheme => _exchangeTheme;
   static ThemeData get darkTheme => _exchangeTheme;

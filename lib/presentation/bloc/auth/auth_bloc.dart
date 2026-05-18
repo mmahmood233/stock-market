@@ -3,6 +3,10 @@ import '../../../domain/repositories/user_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
+/// Handles login, signup, logout, session checks, and balance updates.
+///
+/// Auth pages dispatch [AuthEvent] objects here. This BLoC calls
+/// [UserRepository] and emits [AuthState] objects that the UI renders.
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final UserRepository userRepository;
 
@@ -20,6 +24,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
 
+    // The repository validates input and checks the saved user record.
     final result = await userRepository.login(
       email: event.email,
       password: event.password,
@@ -37,6 +42,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
 
+    // Signup also creates the user's starting fake cash balance.
     final result = await userRepository.signup(
       email: event.email,
       password: event.password,
@@ -55,6 +61,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
 
+    // Logout clears the local session and returns the user to LoginPage.
     final result = await userRepository.logout();
 
     result.fold(
@@ -67,6 +74,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthCheckStatus event,
     Emitter<AuthState> emit,
   ) async {
+    // SplashPage uses this to choose the first route.
     final isLoggedInResult = await userRepository.isLoggedIn();
 
     await isLoggedInResult.fold(
@@ -90,6 +98,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     if (state is AuthAuthenticated) {
+      // PortfolioBloc sends this after confirmed buy/sell operations.
       final result = await userRepository.updateBalance(event.newBalance);
 
       result.fold(

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import '../../../domain/entities/portfolio_stock.dart';
 import '../../../domain/entities/transaction.dart';
 
+/// Base class for Wallet states rendered by [PortfolioPage].
 abstract class PortfolioState extends Equatable {
   const PortfolioState();
 
@@ -9,14 +10,17 @@ abstract class PortfolioState extends Equatable {
   List<Object?> get props => [];
 }
 
+/// No Wallet action has started yet.
 class PortfolioInitial extends PortfolioState {
   const PortfolioInitial();
 }
 
+/// Wallet should show a loading spinner.
 class PortfolioLoading extends PortfolioState {
   const PortfolioLoading();
 }
 
+/// Wallet holdings and calculated totals are ready.
 class PortfolioLoaded extends PortfolioState {
   final List<PortfolioStock> stocks;
   final double totalValue;
@@ -32,6 +36,7 @@ class PortfolioLoaded extends PortfolioState {
     required this.totalProfitLossPercentage,
   });
 
+  /// Builds totals from the holdings list so the UI does not recalculate them.
   factory PortfolioLoaded.fromStocks(List<PortfolioStock> stocks) {
     final totalValue = stocks.fold<double>(
       0,
@@ -57,14 +62,17 @@ class PortfolioLoaded extends PortfolioState {
 
   @override
   List<Object?> get props => [
-        stocks,
-        totalValue,
-        totalInvestment,
-        totalProfitLoss,
-        totalProfitLossPercentage,
-      ];
+    stocks,
+    totalValue,
+    totalInvestment,
+    totalProfitLoss,
+    totalProfitLossPercentage,
+  ];
 }
 
+/// A buy or sell completed successfully.
+///
+/// [PortfolioPage] listens to this state to show a success SnackBar.
 class PortfolioTransactionSuccess extends PortfolioState {
   final Transaction transaction;
   final String message;
@@ -78,6 +86,7 @@ class PortfolioTransactionSuccess extends PortfolioState {
   List<Object?> get props => [transaction, message];
 }
 
+/// Transaction History page should show [transactions].
 class PortfolioTransactionHistoryLoaded extends PortfolioState {
   final List<Transaction> transactions;
 
@@ -87,6 +96,7 @@ class PortfolioTransactionHistoryLoaded extends PortfolioState {
   List<Object?> get props => [transactions];
 }
 
+/// Wallet or trade action failed and should show [message].
 class PortfolioError extends PortfolioState {
   final String message;
 
@@ -96,6 +106,7 @@ class PortfolioError extends PortfolioState {
   List<Object?> get props => [message];
 }
 
+/// User has no holdings.
 class PortfolioEmpty extends PortfolioState {
   const PortfolioEmpty();
 }

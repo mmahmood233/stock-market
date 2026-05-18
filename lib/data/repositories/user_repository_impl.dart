@@ -4,6 +4,10 @@ import '../../domain/entities/user.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../datasources/user_local_datasource.dart';
 
+/// Implementation of [UserRepository].
+///
+/// [AuthBloc] calls this class. It validates input, converts thrown storage
+/// errors into [Failure] objects, and returns clean domain entities.
 class UserRepositoryImpl implements UserRepository {
   final UserLocalDataSource localDataSource;
 
@@ -15,6 +19,7 @@ class UserRepositoryImpl implements UserRepository {
     required String password,
   }) async {
     try {
+      // Keep validation here so login screens and tests use the same rules.
       if (email.isEmpty || password.isEmpty) {
         return const Left(ValidationFailure('Email and password are required'));
       }
@@ -23,7 +28,10 @@ class UserRepositoryImpl implements UserRepository {
         return const Left(ValidationFailure('Invalid email format'));
       }
 
-      final user = await localDataSource.login(email: email, password: password);
+      final user = await localDataSource.login(
+        email: email,
+        password: password,
+      );
       return Right(user.toEntity());
     } catch (e) {
       return Left(AuthenticationFailure('Login failed: $e'));
@@ -37,6 +45,7 @@ class UserRepositoryImpl implements UserRepository {
     required String name,
   }) async {
     try {
+      // Signup validation protects the local data source from invalid accounts.
       if (email.isEmpty || password.isEmpty || name.isEmpty) {
         return const Left(ValidationFailure('All fields are required'));
       }
@@ -46,7 +55,9 @@ class UserRepositoryImpl implements UserRepository {
       }
 
       if (password.length < 6) {
-        return const Left(ValidationFailure('Password must be at least 6 characters'));
+        return const Left(
+          ValidationFailure('Password must be at least 6 characters'),
+        );
       }
 
       final user = await localDataSource.signup(

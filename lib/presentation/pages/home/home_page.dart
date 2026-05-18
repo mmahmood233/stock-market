@@ -9,6 +9,10 @@ import '../auth/login_page.dart';
 import '../market/market_page.dart';
 import '../portfolio/portfolio_page.dart';
 
+/// Main authenticated shell.
+///
+/// This page owns the bottom navigation and keeps Market, Wallet, and Profile
+/// alive inside an [IndexedStack].
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -19,6 +23,7 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
+  /// Called by the empty Wallet state to send the user back to Market.
   void navigateToMarket() {
     setState(() {
       _selectedIndex = 0;
@@ -154,6 +159,9 @@ class HomePageState extends State<HomePage> {
   }
 }
 
+/// Simple profile tab showing user info and fake cash balance.
+///
+/// The user comes from [AuthBloc], which is provided at app startup.
 class _ProfileTab extends StatelessWidget {
   const _ProfileTab();
 

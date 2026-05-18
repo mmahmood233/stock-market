@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+/// Base class for chart history actions sent to [StockHistoryBloc].
 abstract class StockHistoryEvent extends Equatable {
   const StockHistoryEvent();
 
@@ -7,6 +8,7 @@ abstract class StockHistoryEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+/// Sent by [StockDetailPage] when a user opens a stock.
 class StockHistoryRequested extends StockHistoryEvent {
   final String symbol;
   final DateTime startDate;

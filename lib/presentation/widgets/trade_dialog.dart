@@ -10,8 +10,13 @@ import '../bloc/portfolio/portfolio_bloc.dart';
 import '../bloc/portfolio/portfolio_event.dart';
 import 'custom_button.dart';
 
+/// The two supported trade actions.
 enum TradeType { buy, sell }
 
+/// Buy/Sell modal opened from [StockDetailPage].
+///
+/// It validates quantity, shows a confirmation dialog, then sends
+/// [PortfolioBuyStock] or [PortfolioSellStock] to [PortfolioBloc].
 class TradeDialog extends StatefulWidget {
   final Stock stock;
   final TradeType type;
@@ -42,6 +47,7 @@ class _TradeDialogState extends State<TradeDialog> {
 
   void _updateTotal() {
     setState(() {
+      // Keep the total cost or revenue live as the user types.
       final parsed = int.tryParse(_quantityController.text) ?? 0;
       _quantity = parsed < 0 ? 0 : parsed;
       _totalCost = _quantity * widget.stock.currentPrice;
@@ -56,6 +62,7 @@ class _TradeDialogState extends State<TradeDialog> {
     final isBuy = widget.type == TradeType.buy;
     final color = isBuy ? AppColors.profitGreen : AppColors.lossRed;
 
+    // This confirmation prevents accidental buy or sell operations.
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -131,6 +138,7 @@ class _TradeDialogState extends State<TradeDialog> {
         final balance = authState is AuthAuthenticated
             ? authState.user.balance
             : 0.0;
+        // Max quantity depends on fake cash for buys and holdings for sells.
         final maxBuyQuantity = widget.stock.currentPrice > 0
             ? balance ~/ widget.stock.currentPrice
             : 0;
@@ -345,6 +353,7 @@ class _TradeDialogState extends State<TradeDialog> {
   }
 }
 
+/// Small label/value row used inside the trade confirmation dialog.
 class _ConfirmRow extends StatelessWidget {
   final String label;
   final String value;

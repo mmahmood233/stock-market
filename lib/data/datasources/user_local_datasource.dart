@@ -5,15 +5,38 @@ import '../../core/constants/app_constants.dart';
 import '../../core/constants/storage_keys.dart';
 import '../models/user_model.dart';
 
+/// Local user storage contract.
+///
+/// [UserRepositoryImpl] calls this data source for login, signup, session
+/// checks, and balance updates.
 abstract class UserLocalDataSource {
+  /// Finds a saved user by email and checks the password.
   Future<UserModel> login({required String email, required String password});
-  Future<UserModel> signup({required String email, required String password, required String name});
+
+  /// Creates a new saved user with the starting fake balance.
+  Future<UserModel> signup({
+    required String email,
+    required String password,
+    required String name,
+  });
+
+  /// Clears the active session keys.
   Future<void> logout();
+
+  /// Reads the user attached to the current session.
   Future<UserModel> getCurrentUser();
+
+  /// Saves a new balance for the current user.
   Future<UserModel> updateBalance(double newBalance);
+
+  /// Returns true when a session is currently saved.
   Future<bool> isLoggedIn();
 }
 
+/// SharedPreferences implementation of [UserLocalDataSource].
+///
+/// This app uses local mock authentication only, so users and passwords are
+/// stored on the device for the exercise.
 class UserLocalDataSourceImpl implements UserLocalDataSource {
   final SharedPreferences sharedPreferences;
   final Uuid uuid;
@@ -24,7 +47,10 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
   });
 
   @override
-  Future<UserModel> login({required String email, required String password}) async {
+  Future<UserModel> login({
+    required String email,
+    required String password,
+  }) async {
     final usersJson = sharedPreferences.getString('users') ?? '{}';
     final Map<String, dynamic> users = json.decode(usersJson);
 
@@ -68,10 +94,7 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
       createdAt: DateTime.now(),
     );
 
-    users[email] = {
-      'password': password,
-      'user': user.toJson(),
-    };
+    users[email] = {'password': password, 'user': user.toJson()};
 
     await sharedPreferences.setString('users', json.encode(users));
     await sharedPreferences.setBool(StorageKeys.isLoggedIn, true);
@@ -92,7 +115,8 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
 
   @override
   Future<UserModel> getCurrentUser() async {
-    final isLoggedIn = sharedPreferences.getBool(StorageKeys.isLoggedIn) ?? false;
+    final isLoggedIn =
+        sharedPreferences.getBool(StorageKeys.isLoggedIn) ?? false;
     if (!isLoggedIn) {
       throw Exception('User not logged in');
     }

@@ -16,6 +16,10 @@ import '../../bloc/stock_history/stock_history_state.dart';
 import '../../widgets/stock_chart.dart';
 import '../../widgets/trade_dialog.dart';
 
+/// Detail screen for one selected stock.
+///
+/// Market and Wallet open this page. It shows live market data, historical
+/// chart data, and Buy/Sell actions.
 class StockDetailPage extends StatefulWidget {
   final Stock stock;
 
@@ -37,6 +41,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
     final endDate = DateTime.now();
     final startDate = endDate.subtract(const Duration(days: 365));
 
+    // The chart loads the last year, and the chart widget slices it by period.
     context.read<StockHistoryBloc>().add(
       StockHistoryRequested(
         symbol: widget.stock.symbol,
@@ -49,6 +54,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
   void _loadPortfolio() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
+      // Needed to know whether the Sell button should be enabled.
       context.read<PortfolioBloc>().add(
         PortfolioLoadRequested(authState.user.id),
       );
@@ -62,6 +68,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
     int? currentHoldings;
     final portfolioState = context.read<PortfolioBloc>().state;
     if (portfolioState is PortfolioLoaded) {
+      // The dialog needs current holdings to validate sell quantity.
       final holding = portfolioState.stocks.cast<dynamic>().firstWhere(
         (s) => s.symbol == stock.symbol,
         orElse: () => null,
@@ -87,6 +94,7 @@ class _StockDetailPageState extends State<StockDetailPage> {
 
   Stock _getCurrentStock(StockState stockState) {
     if (stockState is StockLoaded) {
+      // Keep this page updated while the Market WebSocket stream is running.
       final updatedStock = stockState.stocks.firstWhere(
         (s) => s.symbol == widget.stock.symbol,
         orElse: () => widget.stock,

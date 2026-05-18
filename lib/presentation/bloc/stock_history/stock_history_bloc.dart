@@ -3,10 +3,15 @@ import '../../../domain/repositories/stock_repository.dart';
 import 'stock_history_event.dart';
 import 'stock_history_state.dart';
 
+/// Handles historical chart data for one selected stock.
+///
+/// [StockDetailPage] sends [StockHistoryRequested]. This BLoC calls
+/// [StockRepository] and emits states consumed by [StockChart].
 class StockHistoryBloc extends Bloc<StockHistoryEvent, StockHistoryState> {
   final StockRepository stockRepository;
 
-  StockHistoryBloc({required this.stockRepository}) : super(const StockHistoryInitial()) {
+  StockHistoryBloc({required this.stockRepository})
+    : super(const StockHistoryInitial()) {
     on<StockHistoryRequested>(_onHistoryRequested);
   }
 
@@ -16,6 +21,7 @@ class StockHistoryBloc extends Bloc<StockHistoryEvent, StockHistoryState> {
   ) async {
     emit(const StockHistoryLoading());
 
+    // The repository returns the requested date range for the selected symbol.
     final result = await stockRepository.getStockHistory(
       symbol: event.symbol,
       startDate: event.startDate,
@@ -24,10 +30,8 @@ class StockHistoryBloc extends Bloc<StockHistoryEvent, StockHistoryState> {
 
     result.fold(
       (failure) => emit(StockHistoryError(failure.message)),
-      (history) => emit(StockHistoryLoaded(
-        symbol: event.symbol,
-        history: history,
-      )),
+      (history) =>
+          emit(StockHistoryLoaded(symbol: event.symbol, history: history)),
     );
   }
 }

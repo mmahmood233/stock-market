@@ -1,5 +1,9 @@
 import '../../domain/entities/user.dart';
 
+/// Storage-ready version of [User].
+///
+/// [UserLocalDataSourceImpl] converts this model to and from JSON when saving
+/// users in SharedPreferences.
 class UserModel extends User {
   const UserModel({
     required super.id,
@@ -9,6 +13,7 @@ class UserModel extends User {
     required super.createdAt,
   });
 
+  /// Builds a user model from saved JSON.
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
@@ -19,6 +24,7 @@ class UserModel extends User {
     );
   }
 
+  /// Converts this user to JSON for SharedPreferences.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -29,6 +35,7 @@ class UserModel extends User {
     };
   }
 
+  /// Converts a domain [User] into a data model.
   factory UserModel.fromEntity(User user) {
     return UserModel(
       id: user.id,
@@ -39,6 +46,7 @@ class UserModel extends User {
     );
   }
 
+  /// Returns this model as the domain entity used by BLoCs.
   User toEntity() => this;
 
   @override

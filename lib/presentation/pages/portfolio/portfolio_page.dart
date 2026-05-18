@@ -16,6 +16,10 @@ import '../../widgets/portfolio_stock_card.dart';
 import '../stock_detail/stock_detail_page.dart';
 import 'transaction_history_page.dart';
 
+/// Wallet page.
+///
+/// It displays owned stocks, total value, investment, and profit/loss. It uses
+/// [PortfolioBloc] for holdings and [StockBloc] to refresh current prices.
 class PortfolioPage extends StatefulWidget {
   const PortfolioPage({super.key});
 
@@ -30,6 +34,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
     _loadPortfolio();
   }
 
+  /// Loads holdings for the currently logged-in user.
   void _loadPortfolio() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
@@ -378,6 +383,10 @@ class _PortfolioPageState extends State<PortfolioPage> {
     );
   }
 
+  /// Builds a [Stock] for the detail page from live data when possible.
+  ///
+  /// If the live list is not available, the Wallet holding is used as a safe
+  /// fallback so tapping a holding still opens a detail page.
   Stock _stockForDetail(PortfolioStock stock, StockLoaded? stockState) {
     if (stockState != null) {
       final liveIndex = stockState.stocks.indexWhere(

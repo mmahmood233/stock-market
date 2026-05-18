@@ -6,6 +6,10 @@ import '../../domain/repositories/stock_repository.dart';
 import '../datasources/stock_local_datasource.dart';
 import '../datasources/stock_remote_datasource.dart';
 
+/// Implementation of [StockRepository].
+///
+/// [StockBloc] and [StockHistoryBloc] call this class. It combines live server
+/// data with local cache fallback and returns [Failure] values on errors.
 class StockRepositoryImpl implements StockRepository {
   final StockRemoteDataSource remoteDataSource;
   final StockLocalDataSource localDataSource;
@@ -18,6 +22,7 @@ class StockRepositoryImpl implements StockRepository {
   @override
   Stream<Either<Failure, List<Stock>>> getRealtimeStocks() async* {
     try {
+      // Every successful WebSocket update is cached for offline fallback.
       await for (final stocks in remoteDataSource.getRealtimeStocks()) {
         await localDataSource.cacheStocks(stocks);
         yield Right(stocks.map((model) => model.toEntity()).toList());

@@ -8,6 +8,10 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../home/home_page.dart';
 
+/// Signup screen.
+///
+/// It collects name, email, and password, then sends [AuthSignupRequested] to
+/// [AuthBloc]. The new user receives the starting fake balance.
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
 
@@ -35,22 +39,21 @@ class _SignupPageState extends State<SignupPage> {
 
   void _handleSignup() {
     if (_formKey.currentState!.validate()) {
+      // AuthBloc creates the account and saves the new session.
       context.read<AuthBloc>().add(
-            AuthSignupRequested(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-              name: _nameController.text.trim(),
-            ),
-          );
+        AuthSignupRequested(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          name: _nameController.text.trim(),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign Up'),
-      ),
+      appBar: AppBar(title: const Text('Sign Up')),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
@@ -89,17 +92,16 @@ class _SignupPageState extends State<SignupPage> {
                       Text(
                         'Create Account',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Start trading with \$${AppConstants.initialBalance.toStringAsFixed(0)}',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
                       ),
                       const SizedBox(height: 48),
                       CustomTextField(
@@ -146,7 +148,9 @@ class _SignupPageState extends State<SignupPage> {
                         enabled: !isLoading,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                           ),
                           onPressed: () {
                             setState(() {
@@ -174,11 +178,14 @@ class _SignupPageState extends State<SignupPage> {
                         enabled: !isLoading,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _obscureConfirmPassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),

@@ -6,6 +6,10 @@ import '../auth/auth_state.dart';
 import 'portfolio_event.dart';
 import 'portfolio_state.dart';
 
+/// Handles Wallet holdings, buy/sell actions, and transaction history.
+///
+/// [PortfolioPage], [TradeDialog], and [TransactionHistoryPage] dispatch events
+/// here. This BLoC also tells [AuthBloc] when the cash balance changes.
 class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
   final PortfolioRepository portfolioRepository;
   final AuthBloc authBloc;
@@ -26,6 +30,7 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
   ) async {
     emit(const PortfolioLoading());
 
+    // Wallet uses the logged-in user id to keep accounts separate.
     final result = await portfolioRepository.getPortfolio(event.userId);
 
     result.fold((failure) => emit(PortfolioError(failure.message)), (stocks) {
@@ -46,6 +51,7 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
     final totalCost = event.quantity * event.price;
     final currentState = authBloc.state;
 
+    // The BLoC repeats key validation so tests or other screens cannot bypass it.
     if (currentState is! AuthAuthenticated ||
         currentState.user.id != event.userId) {
       emit(const PortfolioError('You must be logged in to buy stocks'));
@@ -68,6 +74,7 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
     await result.fold((failure) async => emit(PortfolioError(failure.message)), (
       transaction,
     ) async {
+      // Update fake cash after the holding was saved successfully.
       authBloc.add(AuthUpdateBalance(currentState.user.balance - totalCost));
 
       emit(
@@ -90,6 +97,7 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
 
     final totalRevenue = event.quantity * event.price;
 
+    // The repository checks the saved holding quantity before selling.
     final result = await portfolioRepository.sellStock(
       userId: event.userId,
       symbol: event.symbol,
@@ -102,6 +110,7 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
       (transaction) async {
         final currentState = authBloc.state;
         if (currentState is AuthAuthenticated) {
+          // Add fake cash back after a successful sale.
           authBloc.add(
             AuthUpdateBalance(currentState.user.balance + totalRevenue),
           );
@@ -124,6 +133,7 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
     PortfolioUpdatePrices event,
     Emitter<PortfolioState> emit,
   ) async {
+    // Called when live prices change and Wallet holdings need fresh values.
     for (final entry in event.prices.entries) {
       await portfolioRepository.updatePortfolioStockPrice(
         userId: event.userId,
@@ -141,6 +151,7 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
   ) async {
     emit(const PortfolioLoading());
 
+    // Transaction History page uses this to show the audit trail.
     final result = await portfolioRepository.getTransactionHistory(
       event.userId,
     );

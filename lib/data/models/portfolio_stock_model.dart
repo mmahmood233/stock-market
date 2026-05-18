@@ -1,5 +1,9 @@
 import '../../domain/entities/portfolio_stock.dart';
 
+/// Storage-ready version of a Wallet holding.
+///
+/// [PortfolioLocalDataSourceImpl] saves this model in SharedPreferences after
+/// buy, sell, and live price update operations.
 class PortfolioStockModel extends PortfolioStock {
   const PortfolioStockModel({
     required super.symbol,
@@ -10,6 +14,7 @@ class PortfolioStockModel extends PortfolioStock {
     required super.lastUpdated,
   });
 
+  /// Builds a holding from saved JSON.
   factory PortfolioStockModel.fromJson(Map<String, dynamic> json) {
     return PortfolioStockModel(
       symbol: json['symbol'] as String,
@@ -21,6 +26,7 @@ class PortfolioStockModel extends PortfolioStock {
     );
   }
 
+  /// Converts this holding to JSON for SharedPreferences.
   Map<String, dynamic> toJson() {
     return {
       'symbol': symbol,
@@ -32,6 +38,7 @@ class PortfolioStockModel extends PortfolioStock {
     };
   }
 
+  /// Converts a domain [PortfolioStock] into a data model.
   factory PortfolioStockModel.fromEntity(PortfolioStock stock) {
     return PortfolioStockModel(
       symbol: stock.symbol,
@@ -43,8 +50,10 @@ class PortfolioStockModel extends PortfolioStock {
     );
   }
 
+  /// Returns this model as the domain entity used by Wallet UI.
   PortfolioStock toEntity() => this;
 
+  /// Creates an updated holding, used when quantity or live price changes.
   @override
   PortfolioStockModel copyWith({
     String? symbol,

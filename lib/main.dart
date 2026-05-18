@@ -9,12 +9,21 @@ import 'presentation/bloc/stock/stock_bloc.dart';
 import 'presentation/bloc/stock_history/stock_history_bloc.dart';
 import 'presentation/pages/splash_page.dart';
 
+/// App entry point.
+///
+/// This is called by Flutter first. It prepares local storage and all shared
+/// app services through [InjectionContainer], then starts the root widget.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await InjectionContainer.init();
   runApp(const StockMarketApp());
 }
 
+/// Root widget used by the whole app.
+///
+/// It provides every BLoC used by the pages:
+/// [AuthBloc] for login, [StockBloc] for live prices, [PortfolioBloc] for the
+/// Wallet, and [StockHistoryBloc] for charts.
 class StockMarketApp extends StatelessWidget {
   const StockMarketApp({super.key});
 

@@ -1,5 +1,9 @@
 import 'package:equatable/equatable.dart';
 
+/// One historical price point for a stock chart.
+///
+/// [StockHistoryBloc] sends a list of these to [StockChart], which displays
+/// day, week, month, year, and all-time slices.
 class StockHistory extends Equatable {
   final String symbol;
   final DateTime timestamp;
@@ -21,12 +25,12 @@ class StockHistory extends Equatable {
 
   @override
   List<Object?> get props => [
-        symbol,
-        timestamp,
-        open,
-        high,
-        low,
-        close,
-        volume,
-      ];
+    symbol,
+    timestamp,
+    open,
+    high,
+    low,
+    close,
+    volume,
+  ];
 }

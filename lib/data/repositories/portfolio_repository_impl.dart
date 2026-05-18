@@ -5,13 +5,19 @@ import '../../domain/entities/transaction.dart';
 import '../../domain/repositories/portfolio_repository.dart';
 import '../datasources/portfolio_local_datasource.dart';
 
+/// Implementation of [PortfolioRepository].
+///
+/// [PortfolioBloc] calls this class for Wallet loading and trades. It validates
+/// simple trade rules before writing to local storage.
 class PortfolioRepositoryImpl implements PortfolioRepository {
   final PortfolioLocalDataSource localDataSource;
 
   PortfolioRepositoryImpl({required this.localDataSource});
 
   @override
-  Future<Either<Failure, List<PortfolioStock>>> getPortfolio(String userId) async {
+  Future<Either<Failure, List<PortfolioStock>>> getPortfolio(
+    String userId,
+  ) async {
     try {
       final portfolio = await localDataSource.getPortfolio(userId);
       return Right(portfolio.map((model) => model.toEntity()).toList());
@@ -45,6 +51,7 @@ class PortfolioRepositoryImpl implements PortfolioRepository {
     required double price,
   }) async {
     try {
+      // Quantity and price must be valid before changing holdings.
       if (quantity <= 0) {
         return const Left(ValidationFailure('Quantity must be greater than 0'));
       }
@@ -74,6 +81,7 @@ class PortfolioRepositoryImpl implements PortfolioRepository {
     required double price,
   }) async {
     try {
+      // Selling uses the same basic validation before checking saved holdings.
       if (quantity <= 0) {
         return const Left(ValidationFailure('Quantity must be greater than 0'));
       }
@@ -95,7 +103,9 @@ class PortfolioRepositoryImpl implements PortfolioRepository {
   }
 
   @override
-  Future<Either<Failure, List<Transaction>>> getTransactionHistory(String userId) async {
+  Future<Either<Failure, List<Transaction>>> getTransactionHistory(
+    String userId,
+  ) async {
     try {
       final transactions = await localDataSource.getTransactionHistory(userId);
       return Right(transactions.map((model) => model.toEntity()).toList());

@@ -3,6 +3,10 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../domain/entities/portfolio_stock.dart';
 
+/// One holding row in the Wallet.
+///
+/// [PortfolioPage] creates this for each owned stock. Tapping it opens the
+/// matching stock detail page.
 class PortfolioStockCard extends StatelessWidget {
   final PortfolioStock stock;
   final VoidCallback onTap;

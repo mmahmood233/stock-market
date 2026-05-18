@@ -4,17 +4,18 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../domain/entities/stock_history.dart';
 
+/// Time ranges shown above the historical chart.
 enum ChartPeriod { day, week, month, year, all }
 
+/// Historical line chart used by [StockDetailPage].
+///
+/// The parent passes one year of data. This widget filters that data into day,
+/// week, month, year, or all slices.
 class StockChart extends StatefulWidget {
   final List<StockHistory> history;
   final bool isLoading;
 
-  const StockChart({
-    super.key,
-    required this.history,
-    this.isLoading = false,
-  });
+  const StockChart({super.key, required this.history, this.isLoading = false});
 
   @override
   State<StockChart> createState() => _StockChartState();
@@ -23,6 +24,7 @@ class StockChart extends StatefulWidget {
 class _StockChartState extends State<StockChart> {
   ChartPeriod _selectedPeriod = ChartPeriod.month;
 
+  /// Returns only the data points needed for the selected period chip.
   List<StockHistory> _getFilteredHistory() {
     if (widget.history.isEmpty) return [];
 
@@ -46,9 +48,7 @@ class _StockChartState extends State<StockChart> {
         return widget.history;
     }
 
-    return widget.history
-        .where((h) => h.timestamp.isAfter(startDate))
-        .toList();
+    return widget.history.where((h) => h.timestamp.isAfter(startDate)).toList();
   }
 
   @override
@@ -56,9 +56,7 @@ class _StockChartState extends State<StockChart> {
     if (widget.isLoading) {
       return const SizedBox(
         height: 300,
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -69,17 +67,13 @@ class _StockChartState extends State<StockChart> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.show_chart,
-                size: 64,
-                color: Colors.grey,
-              ),
+              const Icon(Icons.show_chart, size: 64, color: Colors.grey),
               const SizedBox(height: 16),
               Text(
                 'No historical data available',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
               ),
             ],
           ),
@@ -91,9 +85,7 @@ class _StockChartState extends State<StockChart> {
     if (filteredHistory.isEmpty) {
       return const SizedBox(
         height: 300,
-        child: Center(
-          child: Text('No data for selected period'),
-        ),
+        child: Center(child: Text('No data for selected period')),
       );
     }
 
@@ -105,15 +97,14 @@ class _StockChartState extends State<StockChart> {
           height: 300,
           child: Padding(
             padding: const EdgeInsets.only(right: 16, top: 16),
-            child: LineChart(
-              _buildChartData(filteredHistory),
-            ),
+            child: LineChart(_buildChartData(filteredHistory)),
           ),
         ),
       ],
     );
   }
 
+  /// Builds the period selector chips shown above the chart.
   Widget _buildPeriodSelector() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -139,6 +130,7 @@ class _StockChartState extends State<StockChart> {
     );
   }
 
+  /// Converts a [ChartPeriod] enum into the chip label shown to the user.
   String _getPeriodLabel(ChartPeriod period) {
     switch (period) {
       case ChartPeriod.day:
@@ -154,6 +146,7 @@ class _StockChartState extends State<StockChart> {
     }
   }
 
+  /// Converts historical prices into fl_chart line chart data.
   LineChartData _buildChartData(List<StockHistory> history) {
     final spots = history.asMap().entries.map((entry) {
       return FlSpot(entry.key.toDouble(), entry.value.close);
@@ -195,9 +188,7 @@ class _StockChartState extends State<StockChart> {
         rightTitles: const AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-        topTitles: const AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
+        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
@@ -255,6 +246,7 @@ class _StockChartState extends State<StockChart> {
     );
   }
 
+  /// Formats the x-axis date label based on the selected period.
   String _formatDate(DateTime date) {
     switch (_selectedPeriod) {
       case ChartPeriod.day:

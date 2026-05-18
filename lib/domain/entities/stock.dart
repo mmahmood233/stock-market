@@ -1,5 +1,9 @@
 import 'package:equatable/equatable.dart';
 
+/// Main stock object used by the UI.
+///
+/// [StockRepository] returns this entity to [StockBloc]. Market rows, Stock
+/// Detail, and trade dialogs read these values to show live prices.
 class Stock extends Equatable {
   final String symbol;
   final String name;
@@ -25,19 +29,20 @@ class Stock extends Equatable {
     required this.lastUpdated,
   });
 
+  /// True when the current price is above or equal to the previous close.
   bool get isPositive => changeAmount >= 0;
 
   @override
   List<Object?> get props => [
-        symbol,
-        name,
-        currentPrice,
-        previousClose,
-        changeAmount,
-        changePercentage,
-        dayHigh,
-        dayLow,
-        volume,
-        lastUpdated,
-      ];
+    symbol,
+    name,
+    currentPrice,
+    previousClose,
+    changeAmount,
+    changePercentage,
+    dayHigh,
+    dayLow,
+    volume,
+    lastUpdated,
+  ];
 }

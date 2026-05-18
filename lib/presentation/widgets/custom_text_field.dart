@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// Shared form field.
+///
+/// Login and signup screens use this so labels, icons, validation, and enabled
+/// states work the same way.
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;

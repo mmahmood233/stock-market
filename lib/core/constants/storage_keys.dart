@@ -1,3 +1,7 @@
+/// Keys used for session values saved in SharedPreferences.
+///
+/// [UserLocalDataSourceImpl] writes these keys during login/signup and clears
+/// them during logout.
 class StorageKeys {
   static const String isLoggedIn = 'is_logged_in';
   static const String userId = 'user_id';

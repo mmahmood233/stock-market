@@ -1,5 +1,9 @@
 import '../../domain/entities/transaction.dart';
 
+/// Storage-ready version of a trade transaction.
+///
+/// [PortfolioLocalDataSourceImpl] saves this after buy or sell, and the
+/// Transaction History page reads it through [PortfolioBloc].
 class TransactionModel extends Transaction {
   const TransactionModel({
     required super.id,
@@ -13,6 +17,7 @@ class TransactionModel extends Transaction {
     required super.timestamp,
   });
 
+  /// Builds a transaction from saved JSON.
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
       id: json['id'] as String,
@@ -27,6 +32,7 @@ class TransactionModel extends Transaction {
     );
   }
 
+  /// Converts this transaction to JSON for SharedPreferences.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -41,6 +47,7 @@ class TransactionModel extends Transaction {
     };
   }
 
+  /// Converts a domain [Transaction] into a data model.
   factory TransactionModel.fromEntity(Transaction transaction) {
     return TransactionModel(
       id: transaction.id,
@@ -55,5 +62,6 @@ class TransactionModel extends Transaction {
     );
   }
 
+  /// Returns this model as the domain entity used by the UI.
   Transaction toEntity() => this;
 }

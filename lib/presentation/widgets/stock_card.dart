@@ -3,6 +3,10 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../domain/entities/stock.dart';
 
+/// One row in the Market watchlist.
+///
+/// [MarketPage] creates this for each live stock. Tapping it opens
+/// [StockDetailPage].
 class StockCard extends StatelessWidget {
   final Stock stock;
   final VoidCallback onTap;

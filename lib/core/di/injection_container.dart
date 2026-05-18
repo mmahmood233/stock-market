@@ -15,6 +15,10 @@ import '../../presentation/bloc/portfolio/portfolio_bloc.dart';
 import '../../presentation/bloc/stock/stock_bloc.dart';
 import '../../presentation/bloc/stock_history/stock_history_bloc.dart';
 
+/// Creates and stores the shared objects used by the app.
+///
+/// [main] calls [init] once before the UI starts. Pages do not create
+/// repositories or data sources directly; they get BLoCs from this container.
 class InjectionContainer {
   static SharedPreferences? _sharedPreferences;
   static Uuid? _uuid;
@@ -33,6 +37,9 @@ class InjectionContainer {
   static PortfolioBloc? _portfolioBloc;
   static StockHistoryBloc? _stockHistoryBloc;
 
+  /// Builds data sources, repositories, and BLoCs in dependency order.
+  ///
+  /// This must run before [StockMarketApp] is shown.
   static Future<void> init() async {
     _sharedPreferences = await SharedPreferences.getInstance();
     _uuid = const Uuid();
@@ -70,11 +77,19 @@ class InjectionContainer {
     _stockHistoryBloc = StockHistoryBloc(stockRepository: _stockRepository!);
   }
 
+  /// Shared authentication BLoC used by login, signup, home, and trade dialogs.
   static AuthBloc get authBloc => _authBloc!;
+
+  /// Shared stock BLoC used by the Market and Stock Detail pages.
   static StockBloc get stockBloc => _stockBloc!;
+
+  /// Shared Wallet BLoC used by Wallet, trade dialogs, and transaction history.
   static PortfolioBloc get portfolioBloc => _portfolioBloc!;
+
+  /// Shared chart BLoC used by the Stock Detail page.
   static StockHistoryBloc get stockHistoryBloc => _stockHistoryBloc!;
 
+  /// Closes streams and BLoCs when tests or the app need cleanup.
   static void dispose() {
     _authBloc?.close();
     _stockBloc?.close();

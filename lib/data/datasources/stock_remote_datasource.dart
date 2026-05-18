@@ -5,17 +5,32 @@ import '../../core/constants/app_constants.dart';
 import '../models/stock_model.dart';
 import '../models/stock_history_model.dart';
 
+/// Remote stock data contract.
+///
+/// [StockRepositoryImpl] calls this to receive live prices and generated
+/// history data.
 abstract class StockRemoteDataSource {
+  /// Opens the WebSocket and streams stock updates from the mock server.
   Stream<List<StockModel>> getRealtimeStocks();
+
+  /// Returns generated historical data for the selected symbol and date range.
   Future<List<StockHistoryModel>> getStockHistory({
     required String symbol,
     required DateTime startDate,
     required DateTime endDate,
   });
+
+  /// Returns one generated stock when a direct lookup is needed.
   Future<StockModel> getStockBySymbol(String symbol);
+
+  /// Closes the WebSocket and stream controller.
   void dispose();
 }
 
+/// WebSocket implementation of [StockRemoteDataSource].
+///
+/// It connects to [AppConstants.baseUrl], parses each server message, and sends
+/// [StockModel] lists to [StockRepositoryImpl].
 class StockRemoteDataSourceImpl implements StockRemoteDataSource {
   WebSocketChannel? _channel;
   StreamController<List<StockModel>>? _stockController;
@@ -23,20 +38,20 @@ class StockRemoteDataSourceImpl implements StockRemoteDataSource {
   @override
   Stream<List<StockModel>> getRealtimeStocks() {
     _stockController = StreamController<List<StockModel>>.broadcast();
-    
+
     try {
-      _channel = WebSocketChannel.connect(
-        Uri.parse(AppConstants.baseUrl),
-      );
+      _channel = WebSocketChannel.connect(Uri.parse(AppConstants.baseUrl));
 
       _channel!.stream.listen(
         (data) {
           try {
             final jsonData = json.decode(data as String);
-            
+
             if (jsonData is List) {
               final stocks = jsonData
-                  .map((item) => StockModel.fromJson(item as Map<String, dynamic>))
+                  .map(
+                    (item) => StockModel.fromJson(item as Map<String, dynamic>),
+                  )
                   .toList();
               _stockController!.add(stocks);
             } else if (jsonData is Map<String, dynamic>) {
@@ -44,7 +59,9 @@ class StockRemoteDataSourceImpl implements StockRemoteDataSource {
               _stockController!.add([stock]);
             }
           } catch (e) {
-            _stockController!.addError(Exception('Failed to parse stock data: $e'));
+            _stockController!.addError(
+              Exception('Failed to parse stock data: $e'),
+            );
           }
         },
         onError: (error) {
@@ -55,7 +72,9 @@ class StockRemoteDataSourceImpl implements StockRemoteDataSource {
         },
       );
     } catch (e) {
-      _stockController!.addError(Exception('Failed to connect to WebSocket: $e'));
+      _stockController!.addError(
+        Exception('Failed to connect to WebSocket: $e'),
+      );
     }
 
     return _stockController!.stream;
@@ -68,45 +87,47 @@ class StockRemoteDataSourceImpl implements StockRemoteDataSource {
     required DateTime endDate,
   }) async {
     await Future.delayed(const Duration(milliseconds: 500));
-    
+
     final history = <StockHistoryModel>[];
     final days = endDate.difference(startDate).inDays;
-    
+
     double basePrice = 100.0 + (symbol.hashCode % 500);
-    
+
     for (int i = 0; i <= days; i++) {
       final date = startDate.add(Duration(days: i));
       final random = (date.millisecondsSinceEpoch % 100) / 100;
       final change = (random - 0.5) * 10;
-      
+
       basePrice = (basePrice + change).clamp(10.0, 10000.0);
-      
+
       final open = basePrice;
       final close = basePrice + ((random - 0.5) * 5);
       final high = [open, close].reduce((a, b) => a > b ? a : b) + (random * 3);
       final low = [open, close].reduce((a, b) => a < b ? a : b) - (random * 3);
-      
-      history.add(StockHistoryModel(
-        symbol: symbol,
-        timestamp: date,
-        open: open,
-        high: high,
-        low: low,
-        close: close,
-        volume: 1000000 + (random * 5000000),
-      ));
+
+      history.add(
+        StockHistoryModel(
+          symbol: symbol,
+          timestamp: date,
+          open: open,
+          high: high,
+          low: low,
+          close: close,
+          volume: 1000000 + (random * 5000000),
+        ),
+      );
     }
-    
+
     return history;
   }
 
   @override
   Future<StockModel> getStockBySymbol(String symbol) async {
     await Future.delayed(const Duration(milliseconds: 200));
-    
+
     final price = 100.0 + (symbol.hashCode % 500).toDouble();
     final previousClose = price - ((symbol.hashCode % 10) - 5);
-    
+
     return StockModel(
       symbol: symbol,
       name: _getStockName(symbol),

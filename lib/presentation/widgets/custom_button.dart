@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// Shared app button.
+///
+/// Login, signup, and trade dialogs use this to keep loading and sizing
+/// behavior consistent.
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;

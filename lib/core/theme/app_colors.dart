@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+/// Central color palette for the app.
+///
+/// Theme and widgets use these values to keep the Binance-style dark trading
+/// look consistent across Market, Wallet, and Stock Detail screens.
 class AppColors {
   static const Color primary = Color(0xFFF0B90B);
   static const Color secondary = Color(0xFFFCD535);

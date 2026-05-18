@@ -7,6 +7,10 @@ import '../bloc/auth/auth_state.dart';
 import 'auth/login_page.dart';
 import 'home/home_page.dart';
 
+/// First screen shown after app startup.
+///
+/// It asks [AuthBloc] if a user is already logged in, then routes to
+/// [HomePage] or [LoginPage].
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
@@ -22,6 +26,7 @@ class _SplashPageState extends State<SplashPage> {
     super.didChangeDependencies();
     if (!_hasCheckedAuth) {
       _hasCheckedAuth = true;
+      // Trigger after dependencies are available so the BLoC can be read safely.
       context.read<AuthBloc>().add(const AuthCheckStatus());
     }
   }

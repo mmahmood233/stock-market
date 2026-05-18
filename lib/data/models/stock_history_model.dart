@@ -1,5 +1,9 @@
 import '../../domain/entities/stock_history.dart';
 
+/// Data model for chart history points.
+///
+/// [StockRemoteDataSourceImpl] creates these generated history records, and
+/// [StockHistoryBloc] sends them to [StockChart].
 class StockHistoryModel extends StockHistory {
   const StockHistoryModel({
     required super.symbol,
@@ -11,6 +15,7 @@ class StockHistoryModel extends StockHistory {
     required super.volume,
   });
 
+  /// Builds a history point from JSON.
   factory StockHistoryModel.fromJson(Map<String, dynamic> json) {
     return StockHistoryModel(
       symbol: json['symbol'] as String,
@@ -23,6 +28,7 @@ class StockHistoryModel extends StockHistory {
     );
   }
 
+  /// Converts this history point to JSON if caching is needed later.
   Map<String, dynamic> toJson() {
     return {
       'symbol': symbol,
@@ -35,6 +41,7 @@ class StockHistoryModel extends StockHistory {
     };
   }
 
+  /// Converts a domain [StockHistory] into a data model.
   factory StockHistoryModel.fromEntity(StockHistory history) {
     return StockHistoryModel(
       symbol: history.symbol,
@@ -47,5 +54,6 @@ class StockHistoryModel extends StockHistory {
     );
   }
 
+  /// Returns this model as the domain entity used by the chart widget.
   StockHistory toEntity() => this;
 }

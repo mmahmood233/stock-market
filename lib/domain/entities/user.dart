@@ -1,5 +1,9 @@
 import 'package:equatable/equatable.dart';
 
+/// Logged-in user account.
+///
+/// [AuthBloc] keeps this in [AuthAuthenticated]. The balance is shown in the
+/// app bar and updated after buy or sell actions.
 class User extends Equatable {
   final String id;
   final String email;
@@ -15,6 +19,7 @@ class User extends Equatable {
     required this.createdAt,
   });
 
+  /// Creates a new user value when only one field changes, such as balance.
   User copyWith({
     String? id,
     String? email,

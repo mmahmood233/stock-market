@@ -7,13 +7,14 @@ import '../../bloc/portfolio/portfolio_bloc.dart';
 import '../../bloc/portfolio/portfolio_event.dart';
 import '../../bloc/portfolio/portfolio_state.dart';
 
+/// Shows all buy and sell transactions for one user.
+///
+/// [PortfolioPage] opens this page from the history icon. It asks
+/// [PortfolioBloc] for transactions using [userId].
 class TransactionHistoryPage extends StatefulWidget {
   final String userId;
 
-  const TransactionHistoryPage({
-    super.key,
-    required this.userId,
-  });
+  const TransactionHistoryPage({super.key, required this.userId});
 
   @override
   State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
@@ -24,22 +25,18 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
   void initState() {
     super.initState();
     context.read<PortfolioBloc>().add(
-          PortfolioTransactionHistoryRequested(widget.userId),
-        );
+      PortfolioTransactionHistoryRequested(widget.userId),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Transaction History'),
-      ),
+      appBar: AppBar(title: const Text('Transaction History')),
       body: BlocBuilder<PortfolioBloc, PortfolioState>(
         builder: (context, state) {
           if (state is PortfolioLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (state is PortfolioError) {
@@ -47,11 +44,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: AppColors.error,
-                  ),
+                  Icon(Icons.error_outline, size: 64, color: AppColors.error),
                   const SizedBox(height: 16),
                   Text(
                     'Error loading transactions',
@@ -63,17 +56,17 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                     child: Text(
                       state.message,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                     ),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () {
                       context.read<PortfolioBloc>().add(
-                            PortfolioTransactionHistoryRequested(widget.userId),
-                          );
+                        PortfolioTransactionHistoryRequested(widget.userId),
+                      );
                     },
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),
@@ -98,15 +91,15 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                     Text(
                       'No Transactions Yet',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Your transaction history will appear here',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                     ),
                   ],
                 ),
@@ -123,9 +116,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
             );
           }
 
-          return const Center(
-            child: Text('Unknown state'),
-          );
+          return const Center(child: Text('Unknown state'));
         },
       ),
     );
@@ -172,7 +163,8 @@ class _TransactionCard extends StatelessWidget {
                         children: [
                           Text(
                             isBuy ? 'BUY' : 'SELL',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
                                   color: color,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -180,18 +172,17 @@ class _TransactionCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           Text(
                             transaction.stockSymbol,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       const SizedBox(height: 2),
                       Text(
                         transaction.stockName,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.grey,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -201,9 +192,9 @@ class _TransactionCard extends StatelessWidget {
                 Text(
                   '${isBuy ? '-' : '+'}${Formatters.formatCurrency(transaction.totalAmount)}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
                 ),
               ],
             ),
@@ -245,15 +236,15 @@ class _TransactionCard extends StatelessWidget {
       children: [
         Text(
           '$label: ',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: Colors.grey),
         ),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
         ),
       ],
     );

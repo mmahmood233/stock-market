@@ -8,6 +8,10 @@ import '../../bloc/stock/stock_state.dart';
 import '../../widgets/stock_card.dart';
 import '../stock_detail/stock_detail_page.dart';
 
+/// Market watchlist screen.
+///
+/// It starts [StockBloc]'s live stream, shows the 20 monitored stocks, and
+/// opens [StockDetailPage] when the user taps a stock row.
 class MarketPage extends StatefulWidget {
   const MarketPage({super.key});
 
@@ -22,6 +26,7 @@ class _MarketPageState extends State<MarketPage> {
   @override
   void initState() {
     super.initState();
+    // Start real-time updates as soon as the Market tab is created.
     context.read<StockBloc>().add(const StockRealtimeStarted());
   }
 
@@ -31,6 +36,7 @@ class _MarketPageState extends State<MarketPage> {
     super.dispose();
   }
 
+  /// Filters the live stock list by symbol or company name.
   List<Stock> _filterStocks(List<Stock> stocks) {
     if (_searchQuery.isEmpty) return stocks;
 

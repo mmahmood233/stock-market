@@ -9,6 +9,10 @@ import '../../widgets/custom_text_field.dart';
 import '../home/home_page.dart';
 import 'signup_page.dart';
 
+/// Login screen.
+///
+/// It validates the email and password fields, then sends
+/// [AuthLoginRequested] to [AuthBloc]. On success it routes to [HomePage].
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -31,12 +35,13 @@ class _LoginPageState extends State<LoginPage> {
 
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
+      // AuthBloc handles the actual credential check through UserRepository.
       context.read<AuthBloc>().add(
-            AuthLoginRequested(
-              email: _emailController.text.trim(),
-              password: _passwordController.text,
-            ),
-          );
+        AuthLoginRequested(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
     }
   }
 
@@ -80,17 +85,16 @@ class _LoginPageState extends State<LoginPage> {
                       Text(
                         AppConstants.appName,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Welcome back!',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.grey,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
                       ),
                       const SizedBox(height: 48),
                       CustomTextField(
@@ -120,7 +124,9 @@ class _LoginPageState extends State<LoginPage> {
                         enabled: !isLoading,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                           ),
                           onPressed: () {
                             setState(() {

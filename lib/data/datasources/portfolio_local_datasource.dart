@@ -5,9 +5,21 @@ import '../models/portfolio_stock_model.dart';
 import '../models/transaction_model.dart';
 import '../../domain/entities/transaction.dart';
 
+/// Local Wallet storage contract.
+///
+/// [PortfolioRepositoryImpl] calls this data source to read holdings, save
+/// buy/sell results, and update held stock prices.
 abstract class PortfolioLocalDataSource {
+  /// Returns all holdings for one user.
   Future<List<PortfolioStockModel>> getPortfolio(String userId);
-  Future<PortfolioStockModel?> getPortfolioStock({required String userId, required String symbol});
+
+  /// Returns one holding by symbol for one user.
+  Future<PortfolioStockModel?> getPortfolioStock({
+    required String userId,
+    required String symbol,
+  });
+
+  /// Saves a buy: increases quantity, recalculates average price, and records a transaction.
   Future<TransactionModel> buyStock({
     required String userId,
     required String symbol,
@@ -15,13 +27,19 @@ abstract class PortfolioLocalDataSource {
     required int quantity,
     required double price,
   });
+
+  /// Saves a sell: decreases quantity or removes the holding, then records a transaction.
   Future<TransactionModel> sellStock({
     required String userId,
     required String symbol,
     required int quantity,
     required double price,
   });
+
+  /// Returns saved transactions newest first.
   Future<List<TransactionModel>> getTransactionHistory(String userId);
+
+  /// Updates current price for a held stock using live market data.
   Future<void> updatePortfolioStockPrice({
     required String userId,
     required String symbol,
@@ -29,6 +47,7 @@ abstract class PortfolioLocalDataSource {
   });
 }
 
+/// SharedPreferences implementation of [PortfolioLocalDataSource].
 class PortfolioLocalDataSourceImpl implements PortfolioLocalDataSource {
   final SharedPreferences sharedPreferences;
   final Uuid uuid;
@@ -48,7 +67,9 @@ class PortfolioLocalDataSourceImpl implements PortfolioLocalDataSource {
 
     final List<dynamic> portfolio = json.decode(portfolioJson);
     return portfolio
-        .map((json) => PortfolioStockModel.fromJson(json as Map<String, dynamic>))
+        .map(
+          (json) => PortfolioStockModel.fromJson(json as Map<String, dynamic>),
+        )
         .toList();
   }
 
@@ -94,8 +115,10 @@ class PortfolioLocalDataSourceImpl implements PortfolioLocalDataSource {
 
     if (existingStock != null) {
       final newQuantity = existingStock.quantity + quantity;
-      final newAveragePrice = ((existingStock.averageBuyPrice * existingStock.quantity) + 
-          (price * quantity)) / newQuantity;
+      final newAveragePrice =
+          ((existingStock.averageBuyPrice * existingStock.quantity) +
+              (price * quantity)) /
+          newQuantity;
 
       final updatedStock = existingStock.copyWith(
         quantity: newQuantity,
@@ -107,14 +130,16 @@ class PortfolioLocalDataSourceImpl implements PortfolioLocalDataSource {
       portfolio.removeWhere((stock) => stock.symbol == symbol);
       portfolio.add(updatedStock);
     } else {
-      portfolio.add(PortfolioStockModel(
-        symbol: symbol,
-        name: name,
-        quantity: quantity,
-        averageBuyPrice: price,
-        currentPrice: price,
-        lastUpdated: DateTime.now(),
-      ));
+      portfolio.add(
+        PortfolioStockModel(
+          symbol: symbol,
+          name: name,
+          quantity: quantity,
+          averageBuyPrice: price,
+          currentPrice: price,
+          lastUpdated: DateTime.now(),
+        ),
+      );
     }
 
     await _savePortfolio(userId, portfolio);
@@ -178,7 +203,9 @@ class PortfolioLocalDataSourceImpl implements PortfolioLocalDataSource {
 
   @override
   Future<List<TransactionModel>> getTransactionHistory(String userId) async {
-    final transactionsJson = sharedPreferences.getString(_getTransactionsKey(userId));
+    final transactionsJson = sharedPreferences.getString(
+      _getTransactionsKey(userId),
+    );
     if (transactionsJson == null) return [];
 
     final List<dynamic> transactions = json.decode(transactionsJson);
@@ -206,16 +233,28 @@ class PortfolioLocalDataSourceImpl implements PortfolioLocalDataSource {
     }
   }
 
-  Future<void> _savePortfolio(String userId, List<PortfolioStockModel> portfolio) async {
+  Future<void> _savePortfolio(
+    String userId,
+    List<PortfolioStockModel> portfolio,
+  ) async {
     final portfolioJson = portfolio.map((stock) => stock.toJson()).toList();
-    await sharedPreferences.setString(_getPortfolioKey(userId), json.encode(portfolioJson));
+    await sharedPreferences.setString(
+      _getPortfolioKey(userId),
+      json.encode(portfolioJson),
+    );
   }
 
-  Future<void> _saveTransaction(String userId, TransactionModel transaction) async {
+  Future<void> _saveTransaction(
+    String userId,
+    TransactionModel transaction,
+  ) async {
     final transactions = await getTransactionHistory(userId);
     transactions.insert(0, transaction);
-    
+
     final transactionsJson = transactions.map((t) => t.toJson()).toList();
-    await sharedPreferences.setString(_getTransactionsKey(userId), json.encode(transactionsJson));
+    await sharedPreferences.setString(
+      _getTransactionsKey(userId),
+      json.encode(transactionsJson),
+    );
   }
 }

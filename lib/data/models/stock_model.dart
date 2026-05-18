@@ -1,5 +1,9 @@
 import '../../domain/entities/stock.dart';
 
+/// Data model for live stock updates from the mock WebSocket server.
+///
+/// [StockRemoteDataSourceImpl] parses server JSON into this model, then
+/// [StockRepositoryImpl] exposes it as a [Stock] entity.
 class StockModel extends Stock {
   const StockModel({
     required super.symbol,
@@ -14,12 +18,14 @@ class StockModel extends Stock {
     required super.lastUpdated,
   });
 
+  /// Builds a stock from the server JSON payload.
   factory StockModel.fromJson(Map<String, dynamic> json) {
     final currentPrice = (json['price'] as num).toDouble();
-    final previousClose = (json['previousClose'] as num?)?.toDouble() ?? currentPrice;
+    final previousClose =
+        (json['previousClose'] as num?)?.toDouble() ?? currentPrice;
     final changeAmount = currentPrice - previousClose;
-    final changePercentage = previousClose > 0 
-        ? (changeAmount / previousClose) * 100 
+    final changePercentage = previousClose > 0
+        ? (changeAmount / previousClose) * 100
         : 0.0;
 
     return StockModel(
@@ -38,6 +44,7 @@ class StockModel extends Stock {
     );
   }
 
+  /// Converts this stock to JSON for local cache storage.
   Map<String, dynamic> toJson() {
     return {
       'symbol': symbol,
@@ -51,6 +58,7 @@ class StockModel extends Stock {
     };
   }
 
+  /// Converts a domain [Stock] back into a cacheable model.
   factory StockModel.fromEntity(Stock stock) {
     return StockModel(
       symbol: stock.symbol,
@@ -66,5 +74,6 @@ class StockModel extends Stock {
     );
   }
 
+  /// Returns this model as the domain entity used by the UI.
   Stock toEntity() => this;
 }
